@@ -44,11 +44,6 @@ struct HomeView: View {
                             .accessibilityLabel("\(session.title), \(Int(session.duration / 60)) minutes. \(session.detail) set up session")
                         }
                     }
-                    HStack(spacing: 9) {
-                        Image(systemName: "waveform")
-                        Text("sound on, if you like. a moment for yourself.")
-                    }.font(.footnote).foregroundStyle(FlowStyle.muted)
-                        .padding(.top, 2)
                 }.padding(.horizontal, 24).padding(.top, 8).padding(.bottom, 30)
             }
             .toolbar(.hidden, for: .navigationBar)
