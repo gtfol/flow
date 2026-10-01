@@ -4,6 +4,10 @@ Flow follows the gtfol/vitals native iPhone repository setup. The shared Xcode s
 
 The first beta is version **0.1.0**, build **1**. The App Store listing name is **flow: your inner space**. The bundle name, home-screen display name, and interface remain **flow**.
 
+## First TestFlight build
+
+Build **0.1.0 (1)** was uploaded and successfully processed by Apple on October 1, 2026. It is listed in [App Store Connect → TestFlight](https://appstoreconnect.apple.com/teams/d469500e-5ec0-45d0-bb93-b30f3c4b2d14/apps/6818076841/testflight/ios), under app ID `6818076841`. The uploaded binary keeps both `CFBundleName` and `CFBundleDisplayName` as `flow`.
+
 ## Checks
 
 GitHub Actions uses macOS 26 and Xcode 26.6. It verifies that regenerating the Xcode project leaves no diff, runs core tests on macOS, compiles for simulator and device, and runs the iPhone-hosted tests. Native screen captures and the complete result bundle are retained as workflow artifacts.
