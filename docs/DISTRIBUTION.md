@@ -10,6 +10,12 @@ Build **0.1.0 (1)** was uploaded and successfully processed by Apple on October 
 
 The **Internal** testing group has automatic distribution enabled. Build **0.1.0 (1)** is **Ready to Test**, and the app owner has been invited. Accept the invitation on an iPhone with TestFlight to install the beta.
 
+## Build 2
+
+Build **0.1.0 (2)** was uploaded and processed on October 1, 2026. App Store Connect confirms it is distributed to the **Internal** group and installed by its tester. It fixes the empty player on session start, clarifies the introductory copy, and replaces the letter icon with concentric rings. The app and home-screen name remain **flow**.
+
+Validation: 19 macOS core tests, 23 iPhone-hosted tests, and 3 session navigation UI tests passed. The signed archive and code signature were verified before upload.
+
 ## Checks
 
 GitHub Actions uses macOS 26 and Xcode 26.6. It verifies that regenerating the Xcode project leaves no diff, runs core tests on macOS, compiles for simulator and device, and runs the iPhone-hosted tests. Native screen captures and the complete result bundle are retained as workflow artifacts.
