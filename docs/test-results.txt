@@ -1,0 +1,33 @@
+flow: iPhone simulator XCTest results
+Xcode 26.6, iPhone 17 Pro, iOS 26.5
+October 1, 2026
+
+Test Case '-[FlowTests.FlowCoreTests testAllInterruptionsFreezeAndNeverAutoResume]' passed (0.006 seconds).
+Test Case '-[FlowTests.FlowCoreTests testAmbientFailurePausesAndCanRecoverWithSoundDisabled]' passed (0.005 seconds).
+Test Case '-[FlowTests.FlowCoreTests testBothDurationsCompleteOnceAndClampLateUpdates]' passed (0.005 seconds).
+Test Case '-[FlowTests.FlowCoreTests testBundledDefinitionsContainBothDurationsAndRevisions]' passed (0.001 seconds).
+Test Case '-[FlowTests.FlowCoreTests testCancelledObserverCannotCompleteLater]' passed (0.140 seconds).
+Test Case '-[FlowTests.FlowCoreTests testCueFailureStopsAudioAndPausesVisual]' passed (0.002 seconds).
+Test Case '-[FlowTests.FlowCoreTests testDefaultsAndPreferencesSurviveRelaunch]' passed (0.004 seconds).
+Test Case '-[FlowTests.FlowCoreTests testDelayedRefreshDerivesPhaseWithoutDriftOrStaleTones]' passed (0.003 seconds).
+Test Case '-[FlowTests.FlowCoreTests testExactPhaseBoundaries]' passed (0.002 seconds).
+Test Case '-[FlowTests.FlowCoreTests testHistoryRelaunchDeduplicationAndDeletionPreservePreferencesAndContent]' passed (0.004 seconds).
+Test Case '-[FlowTests.FlowCoreTests testIntroductionIsUntimedAndPauseStopsSpeechWithoutReplay]' passed (0.002 seconds).
+Test Case '-[FlowTests.FlowCoreTests testLateCallbacksDoNotRecreateDeletedHistory]' passed (0.003 seconds).
+Test Case '-[FlowTests.FlowCoreTests testMissingOfflineVoiceHasReadableFallbackAndNoTimedProgress]' passed (0.002 seconds).
+Test Case '-[FlowTests.FlowCoreTests testNaturalModeHasNoPhaseCuesAndCanBeSelectedMidSession]' passed (0.002 seconds).
+Test Case '-[FlowTests.FlowCoreTests testPauseFreezesTimeAndResumeRestartsInhaleWithoutDiscardingActiveTime]' passed (0.002 seconds).
+Test Case '-[FlowTests.FlowCoreTests testRejectsHoldsMalformedPhasesAndUnknownFields]' passed (0.002 seconds).
+Test Case '-[FlowTests.FlowCoreTests testRejectsNonpositiveNonfiniteAndExcessiveDurations]' passed (0.001 seconds).
+Test Case '-[FlowTests.FlowCoreTests testRepeatedStartsDoNotStackAndNewRunsHaveUniqueIDs]' passed (0.002 seconds).
+Test Case '-[FlowTests.FlowCoreTests testStopAndCancellationNeverRecordACompletion]' passed (0.002 seconds).
+Test Case '-[FlowTests.NativeAudioTests testBundledAudioDecodesAndHasExpectedDuration]' passed (0.245 seconds).
+Test Case '-[FlowTests.NativeAudioTests testNativeNotificationsPauseWithoutAutomaticResume]' passed (1.269 seconds).
+Test Case '-[FlowTests.NativeAudioTests testNativeSoundStartStopAndRepeat]' passed (0.492 seconds).
+Test Case '-[FlowTests.ScreenRenderingTests testRenderScreensAtNormalAndLargestTextWithReducedMotion]' passed (16.730 seconds).
+	 Executed 23 tests, with 0 failures (0 unexpected) in 18.927 (18.937) seconds
+	 Executed 23 tests, with 0 failures (0 unexpected) in 18.927 (18.940) seconds
+** TEST SUCCEEDED **
+
+Focused follow-up: ScreenRenderingTests passed, including the standard-size Reduce Motion alternative.
+Unsigned Release build for generic iOS: BUILD SUCCEEDED.

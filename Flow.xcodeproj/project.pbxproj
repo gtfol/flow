@@ -1,0 +1,454 @@
+// !$*UTF8*$!
+{
+	archiveVersion = "1";
+	classes = {
+	};
+	objectVersion = "56";
+	objects = {
+		154754C3AE3C04FE96DEA4D2 = {
+			isa = "PBXFileReference";
+			path = "Flow/Audio/AudioController.swift";
+			lastKnownFileType = "sourcecode.swift";
+			sourceTree = "<group>";
+		};
+		BFEEF6DB555649DEB95F7503 = {
+			isa = "PBXFileReference";
+			path = "Flow/Core/SessionCoordinator.swift";
+			lastKnownFileType = "sourcecode.swift";
+			sourceTree = "<group>";
+		};
+		7B74C05E16AE0563C7F028F6 = {
+			isa = "PBXFileReference";
+			path = "Flow/Core/SessionDefinition.swift";
+			lastKnownFileType = "sourcecode.swift";
+			sourceTree = "<group>";
+		};
+		F6EC16A04061C786B74B95A4 = {
+			isa = "PBXFileReference";
+			path = "Flow/Core/SessionEngine.swift";
+			lastKnownFileType = "sourcecode.swift";
+			sourceTree = "<group>";
+		};
+		81A1CFBFB82184A4AA13512D = {
+			isa = "PBXFileReference";
+			path = "Flow/Core/SessionStore.swift";
+			lastKnownFileType = "sourcecode.swift";
+			sourceTree = "<group>";
+		};
+		4A2A07E5A9B67F3654486048 = {
+			isa = "PBXFileReference";
+			path = "Flow/FlowApp.swift";
+			lastKnownFileType = "sourcecode.swift";
+			sourceTree = "<group>";
+		};
+		39FD3C06A8A29F982EF7CC7C = {
+			isa = "PBXFileReference";
+			path = "Flow/UI/FlowStyle.swift";
+			lastKnownFileType = "sourcecode.swift";
+			sourceTree = "<group>";
+		};
+		1A626141B849FD7EBCF943B8 = {
+			isa = "PBXFileReference";
+			path = "Flow/UI/HomeView.swift";
+			lastKnownFileType = "sourcecode.swift";
+			sourceTree = "<group>";
+		};
+		34DFF4A5D26B2290FDFD4A00 = {
+			isa = "PBXFileReference";
+			path = "Flow/UI/PlayerView.swift";
+			lastKnownFileType = "sourcecode.swift";
+			sourceTree = "<group>";
+		};
+		EA1EB220C0436345FDEDC13D = {
+			isa = "PBXFileReference";
+			path = "Flow/UI/SettingsView.swift";
+			lastKnownFileType = "sourcecode.swift";
+			sourceTree = "<group>";
+		};
+		B450CFB5505A1406714A4D0F = {
+			isa = "PBXFileReference";
+			path = "Flow/UI/SetupView.swift";
+			lastKnownFileType = "sourcecode.swift";
+			sourceTree = "<group>";
+		};
+		0448552D324175C55D62FAE7 = {
+			isa = "PBXFileReference";
+			path = "Flow/Resources/sessions.json";
+			lastKnownFileType = "text.json";
+			sourceTree = "<group>";
+		};
+		D2CBAE66184B0B2C1A87E113 = {
+			isa = "PBXFileReference";
+			path = "Flow/Resources/ambient.wav";
+			lastKnownFileType = "audio.wav";
+			sourceTree = "<group>";
+		};
+		0E941782C432C6543DC14F5C = {
+			isa = "PBXFileReference";
+			path = "Flow/Resources/inhale.wav";
+			lastKnownFileType = "audio.wav";
+			sourceTree = "<group>";
+		};
+		4108BB8E921732EB5A68A946 = {
+			isa = "PBXFileReference";
+			path = "Flow/Resources/exhale.wav";
+			lastKnownFileType = "audio.wav";
+			sourceTree = "<group>";
+		};
+		806BFB91F53438D938EEFF5E = {
+			isa = "PBXFileReference";
+			path = "Flow/Resources/PrivacyInfo.xcprivacy";
+			lastKnownFileType = "text.xml";
+			sourceTree = "<group>";
+		};
+		B82A469B52D8CD60F5073E50 = {
+			isa = "PBXFileReference";
+			path = "Flow/Resources/Assets.xcassets";
+			lastKnownFileType = "folder.assetcatalog";
+			sourceTree = "<group>";
+		};
+		9D73B12510924C40BBA59A9C = {
+			isa = "PBXBuildFile";
+			fileRef = "154754C3AE3C04FE96DEA4D2";
+		};
+		E74C5CDC7F915F28EBF1C5AD = {
+			isa = "PBXBuildFile";
+			fileRef = "BFEEF6DB555649DEB95F7503";
+		};
+		7B8B5A57AEBD81F06A19DA7D = {
+			isa = "PBXBuildFile";
+			fileRef = "7B74C05E16AE0563C7F028F6";
+		};
+		D39E417F0F2BE490391AFCFA = {
+			isa = "PBXBuildFile";
+			fileRef = "F6EC16A04061C786B74B95A4";
+		};
+		666D8391784D7440FB29DABA = {
+			isa = "PBXBuildFile";
+			fileRef = "81A1CFBFB82184A4AA13512D";
+		};
+		99B185599A04099366060069 = {
+			isa = "PBXBuildFile";
+			fileRef = "4A2A07E5A9B67F3654486048";
+		};
+		0E0CC5EAC9E2D1501F97F53E = {
+			isa = "PBXBuildFile";
+			fileRef = "39FD3C06A8A29F982EF7CC7C";
+		};
+		1BC8A319F24FF195828C9981 = {
+			isa = "PBXBuildFile";
+			fileRef = "1A626141B849FD7EBCF943B8";
+		};
+		A51C4EA911AB42BE8E98DBA2 = {
+			isa = "PBXBuildFile";
+			fileRef = "34DFF4A5D26B2290FDFD4A00";
+		};
+		86F172C90AA4ABD69838229C = {
+			isa = "PBXBuildFile";
+			fileRef = "EA1EB220C0436345FDEDC13D";
+		};
+		BBC026BE648F8F33698F2530 = {
+			isa = "PBXBuildFile";
+			fileRef = "B450CFB5505A1406714A4D0F";
+		};
+		D209EA54C055F7073FD1E69D = {
+			isa = "PBXBuildFile";
+			fileRef = "0448552D324175C55D62FAE7";
+		};
+		8F02410245E5ED5E9D3832E6 = {
+			isa = "PBXBuildFile";
+			fileRef = "D2CBAE66184B0B2C1A87E113";
+		};
+		D753AB84ED346EE3D98CD541 = {
+			isa = "PBXBuildFile";
+			fileRef = "0E941782C432C6543DC14F5C";
+		};
+		26EDDE6198747B755E3D6CD0 = {
+			isa = "PBXBuildFile";
+			fileRef = "4108BB8E921732EB5A68A946";
+		};
+		5C9792CA829F852074FD4FD1 = {
+			isa = "PBXBuildFile";
+			fileRef = "806BFB91F53438D938EEFF5E";
+		};
+		D64019700B6B88BE8843BE0C = {
+			isa = "PBXBuildFile";
+			fileRef = "B82A469B52D8CD60F5073E50";
+		};
+		A8792157CB4F27FB949C035F = {
+			isa = "PBXFileReference";
+			explicitFileType = "wrapper.application";
+			path = "flow.app";
+			sourceTree = "BUILT_PRODUCTS_DIR";
+		};
+		0A3E27B8CA818264D75C8D81 = {
+			isa = "PBXGroup";
+			children = ("A8792157CB4F27FB949C035F", "F739566ED5280322FF98A798");
+			name = "Products";
+			sourceTree = "<group>";
+		};
+		AD936FCBED631FA67E05C3EA = {
+			isa = "PBXGroup";
+			children = ("154754C3AE3C04FE96DEA4D2", "BFEEF6DB555649DEB95F7503", "7B74C05E16AE0563C7F028F6", "F6EC16A04061C786B74B95A4", "81A1CFBFB82184A4AA13512D", "4A2A07E5A9B67F3654486048", "39FD3C06A8A29F982EF7CC7C", "1A626141B849FD7EBCF943B8", "34DFF4A5D26B2290FDFD4A00", "EA1EB220C0436345FDEDC13D", "B450CFB5505A1406714A4D0F", "0448552D324175C55D62FAE7", "D2CBAE66184B0B2C1A87E113", "0E941782C432C6543DC14F5C", "4108BB8E921732EB5A68A946", "806BFB91F53438D938EEFF5E", "B82A469B52D8CD60F5073E50", "0A3E27B8CA818264D75C8D81", "0EAF0506A4BB8664B467CEAE", "AADF9F33FC8D87B2E6FAB606", "36A79B963865B523740AEF78");
+			sourceTree = "<group>";
+		};
+		878A52FC5FF6A57D50B7B870 = {
+			isa = "PBXSourcesBuildPhase";
+			buildActionMask = "2147483647";
+			files = ("9D73B12510924C40BBA59A9C", "E74C5CDC7F915F28EBF1C5AD", "7B8B5A57AEBD81F06A19DA7D", "D39E417F0F2BE490391AFCFA", "666D8391784D7440FB29DABA", "99B185599A04099366060069", "0E0CC5EAC9E2D1501F97F53E", "1BC8A319F24FF195828C9981", "A51C4EA911AB42BE8E98DBA2", "86F172C90AA4ABD69838229C", "BBC026BE648F8F33698F2530");
+			runOnlyForDeploymentPostprocessing = "0";
+		};
+		41D311A605520FC7B8B9A980 = {
+			isa = "PBXResourcesBuildPhase";
+			buildActionMask = "2147483647";
+			files = ("D209EA54C055F7073FD1E69D", "8F02410245E5ED5E9D3832E6", "D753AB84ED346EE3D98CD541", "26EDDE6198747B755E3D6CD0", "5C9792CA829F852074FD4FD1", "D64019700B6B88BE8843BE0C");
+			runOnlyForDeploymentPostprocessing = "0";
+		};
+		E2AA269EB967A8853A258BFA = {
+			isa = "PBXFrameworksBuildPhase";
+			buildActionMask = "2147483647";
+			files = ();
+			runOnlyForDeploymentPostprocessing = "0";
+		};
+		73EBF6644258C120893E685D = {
+			isa = "XCBuildConfiguration";
+			name = "Debug";
+			buildSettings = {
+				IPHONEOS_DEPLOYMENT_TARGET = "17.0";
+				SDKROOT = "iphoneos";
+				SWIFT_VERSION = "5.0";
+				CLANG_ENABLE_MODULES = "YES";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG";
+				DEBUG_INFORMATION_FORMAT = "dwarf";
+				ENABLE_TESTABILITY = "YES";
+			};
+		};
+		0B0C687DF8B6B8DC790B519C = {
+			isa = "XCBuildConfiguration";
+			name = "Release";
+			buildSettings = {
+				IPHONEOS_DEPLOYMENT_TARGET = "17.0";
+				SDKROOT = "iphoneos";
+				SWIFT_VERSION = "5.0";
+				CLANG_ENABLE_MODULES = "YES";
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "";
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_TESTABILITY = "NO";
+			};
+		};
+		9879E227F5AD614B3D33074F = {
+			isa = "XCConfigurationList";
+			buildConfigurations = ("73EBF6644258C120893E685D", "0B0C687DF8B6B8DC790B519C");
+			defaultConfigurationIsVisible = "0";
+			defaultConfigurationName = "Release";
+		};
+		6C7EFF6369083C8E1F2B1994 = {
+			isa = "XCBuildConfiguration";
+			name = "Debug";
+			buildSettings = {
+				PRODUCT_NAME = "flow";
+				PRODUCT_MODULE_NAME = "Flow";
+				PRODUCT_BUNDLE_IDENTIFIER = "dev.gtfol.flow";
+				GENERATE_INFOPLIST_FILE = "YES";
+				INFOPLIST_KEY_CFBundleDisplayName = "flow";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = "NO";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
+				INFOPLIST_KEY_UILaunchScreen_Generation = "YES";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = "YES";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = "YES";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait";
+				INFOPLIST_KEY_UIUserInterfaceStyle = "Dark";
+				TARGETED_DEVICE_FAMILY = "1";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = "NO";
+				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon";
+				CODE_SIGN_STYLE = "Automatic";
+				DEVELOPMENT_TEAM = "J59ZSG67SJ";
+				CURRENT_PROJECT_VERSION = "1";
+				MARKETING_VERSION = "0.1.0";
+				SWIFT_EMIT_LOC_STRINGS = "YES";
+				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks");
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG";
+				DEBUG_INFORMATION_FORMAT = "dwarf";
+				ENABLE_TESTABILITY = "YES";
+			};
+		};
+		DD75E2CB1C510A828AC72D96 = {
+			isa = "XCBuildConfiguration";
+			name = "Release";
+			buildSettings = {
+				PRODUCT_NAME = "flow";
+				PRODUCT_MODULE_NAME = "Flow";
+				PRODUCT_BUNDLE_IDENTIFIER = "dev.gtfol.flow";
+				GENERATE_INFOPLIST_FILE = "YES";
+				INFOPLIST_KEY_CFBundleDisplayName = "flow";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = "NO";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
+				INFOPLIST_KEY_UILaunchScreen_Generation = "YES";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = "YES";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = "YES";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait";
+				INFOPLIST_KEY_UIUserInterfaceStyle = "Dark";
+				TARGETED_DEVICE_FAMILY = "1";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = "NO";
+				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon";
+				CODE_SIGN_STYLE = "Automatic";
+				DEVELOPMENT_TEAM = "J59ZSG67SJ";
+				CURRENT_PROJECT_VERSION = "1";
+				MARKETING_VERSION = "0.1.0";
+				SWIFT_EMIT_LOC_STRINGS = "YES";
+				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks");
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "";
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_TESTABILITY = "NO";
+			};
+		};
+		C5C73E6481A31CFC647F47AB = {
+			isa = "XCConfigurationList";
+			buildConfigurations = ("6C7EFF6369083C8E1F2B1994", "DD75E2CB1C510A828AC72D96");
+			defaultConfigurationIsVisible = "0";
+			defaultConfigurationName = "Release";
+		};
+		34A04005BCAF206EEC990BD9 = {
+			isa = "PBXNativeTarget";
+			name = "Flow";
+			productName = "flow";
+			productReference = "A8792157CB4F27FB949C035F";
+			productType = "com.apple.product-type.application";
+			buildConfigurationList = "C5C73E6481A31CFC647F47AB";
+			buildPhases = ("878A52FC5FF6A57D50B7B870", "E2AA269EB967A8853A258BFA", "41D311A605520FC7B8B9A980");
+			buildRules = ();
+			dependencies = ();
+		};
+		0EAF0506A4BB8664B467CEAE = {
+			isa = "PBXFileReference";
+			path = "FlowTests/FlowCoreTests.swift";
+			lastKnownFileType = "sourcecode.swift";
+			sourceTree = "<group>";
+		};
+		AADF9F33FC8D87B2E6FAB606 = {
+			isa = "PBXFileReference";
+			path = "FlowNativeTests/NativeAudioTests.swift";
+			lastKnownFileType = "sourcecode.swift";
+			sourceTree = "<group>";
+		};
+		36A79B963865B523740AEF78 = {
+			isa = "PBXFileReference";
+			path = "FlowNativeTests/ScreenRenderingTests.swift";
+			lastKnownFileType = "sourcecode.swift";
+			sourceTree = "<group>";
+		};
+		724693F8CFCEA32A9F6C662C = {
+			isa = "PBXBuildFile";
+			fileRef = "0EAF0506A4BB8664B467CEAE";
+		};
+		287771E4605EA6DB258556A0 = {
+			isa = "PBXBuildFile";
+			fileRef = "AADF9F33FC8D87B2E6FAB606";
+		};
+		1D29E489F5FFE3FC6E069A16 = {
+			isa = "PBXBuildFile";
+			fileRef = "36A79B963865B523740AEF78";
+		};
+		DEE94446A282611C16F7781C = {
+			isa = "PBXSourcesBuildPhase";
+			buildActionMask = "2147483647";
+			files = ("724693F8CFCEA32A9F6C662C", "287771E4605EA6DB258556A0", "1D29E489F5FFE3FC6E069A16");
+			runOnlyForDeploymentPostprocessing = "0";
+		};
+		F739566ED5280322FF98A798 = {
+			isa = "PBXFileReference";
+			explicitFileType = "wrapper.cfbundle";
+			path = "FlowTests.xctest";
+			sourceTree = "BUILT_PRODUCTS_DIR";
+		};
+		22341BB87F410D35D057D37C = {
+			isa = "XCBuildConfiguration";
+			name = "Debug";
+			buildSettings = {
+				PRODUCT_NAME = "FlowTests";
+				PRODUCT_BUNDLE_IDENTIFIER = "dev.gtfol.flow.tests";
+				GENERATE_INFOPLIST_FILE = "YES";
+				TARGETED_DEVICE_FAMILY = "1";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/flow.app/flow";
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = "Automatic";
+				DEVELOPMENT_TEAM = "J59ZSG67SJ";
+				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks", "@loader_path/Frameworks");
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG";
+				DEBUG_INFORMATION_FORMAT = "dwarf";
+				ENABLE_TESTABILITY = "YES";
+			};
+		};
+		A188B1844D481F2A55033242 = {
+			isa = "XCBuildConfiguration";
+			name = "Release";
+			buildSettings = {
+				PRODUCT_NAME = "FlowTests";
+				PRODUCT_BUNDLE_IDENTIFIER = "dev.gtfol.flow.tests";
+				GENERATE_INFOPLIST_FILE = "YES";
+				TARGETED_DEVICE_FAMILY = "1";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/flow.app/flow";
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = "Automatic";
+				DEVELOPMENT_TEAM = "J59ZSG67SJ";
+				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks", "@loader_path/Frameworks");
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "";
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_TESTABILITY = "NO";
+			};
+		};
+		DE7FA5AA89FB5FD83A483131 = {
+			isa = "XCConfigurationList";
+			buildConfigurations = ("22341BB87F410D35D057D37C", "A188B1844D481F2A55033242");
+			defaultConfigurationIsVisible = "0";
+			defaultConfigurationName = "Release";
+		};
+		DAB01D73CBBCF1FEDE84E2D6 = {
+			isa = "PBXContainerItemProxy";
+			containerPortal = "244210E48437B6556980A702";
+			proxyType = "1";
+			remoteGlobalIDString = "34A04005BCAF206EEC990BD9";
+			remoteInfo = "Flow";
+		};
+		F9A94CEF8CF7D85CE881E703 = {
+			isa = "PBXTargetDependency";
+			target = "34A04005BCAF206EEC990BD9";
+			targetProxy = "DAB01D73CBBCF1FEDE84E2D6";
+		};
+		9805CBD60EB4F66728D5D195 = {
+			isa = "PBXNativeTarget";
+			name = "FlowTests";
+			productName = "FlowTests";
+			productReference = "F739566ED5280322FF98A798";
+			productType = "com.apple.product-type.bundle.unit-test";
+			buildConfigurationList = "DE7FA5AA89FB5FD83A483131";
+			buildPhases = ("DEE94446A282611C16F7781C");
+			buildRules = ();
+			dependencies = ("F9A94CEF8CF7D85CE881E703");
+		};
+		244210E48437B6556980A702 = {
+			isa = "PBXProject";
+			attributes = {
+				LastUpgradeCheck = "2660";
+			};
+			buildConfigurationList = "9879E227F5AD614B3D33074F";
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = "en";
+			knownRegions = ("en", "Base");
+			mainGroup = "AD936FCBED631FA67E05C3EA";
+			productRefGroup = "0A3E27B8CA818264D75C8D81";
+			projectDirPath = "";
+			projectRoot = "";
+			targets = ("34A04005BCAF206EEC990BD9", "9805CBD60EB4F66728D5D195");
+		};
+	};
+	rootObject = "244210E48437B6556980A702";
+}

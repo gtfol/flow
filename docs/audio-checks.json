@@ -1,0 +1,41 @@
+[
+  {
+    "file": "ambient.wav",
+    "clipped_samples": 0,
+    "first_frame": [
+      0,
+      0
+    ],
+    "last_frame": [
+      0,
+      0
+    ],
+    "max_sample_step": 0.0023193359375
+  },
+  {
+    "file": "exhale.wav",
+    "clipped_samples": 0,
+    "first_frame": [
+      0,
+      0
+    ],
+    "last_frame": [
+      0,
+      0
+    ],
+    "max_sample_step": 0.00341796875
+  },
+  {
+    "file": "inhale.wav",
+    "clipped_samples": 0,
+    "first_frame": [
+      0,
+      0
+    ],
+    "last_frame": [
+      0,
+      0
+    ],
+    "max_sample_step": 0.00457763671875
+  }
+]

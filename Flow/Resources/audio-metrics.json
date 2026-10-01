@@ -1,0 +1,26 @@
+[
+  {
+    "file": "ambient.wav",
+    "seconds": 60,
+    "sample_rate": 24000,
+    "peak_dbfs": -27.14,
+    "rms_dbfs": -35.72,
+    "sha256": "e319d8d0b29552b0ef70f7c94c1257533fedc5ae2722fbb57dd88b07639aa621"
+  },
+  {
+    "file": "inhale.wav",
+    "seconds": 0.8,
+    "sample_rate": 24000,
+    "peak_dbfs": -29.05,
+    "rms_dbfs": -37.6,
+    "sha256": "509e68d5732d1951d3e460d2c49314c9ab05e60d98cfe499eee3070a9d4c548f"
+  },
+  {
+    "file": "exhale.wav",
+    "seconds": 0.8,
+    "sample_rate": 24000,
+    "peak_dbfs": -29.05,
+    "rms_dbfs": -37.6,
+    "sha256": "f55cfcf88403b310ef556f0b91fe989684d0f94222adbac7fa91fc487cdf2140"
+  }
+]

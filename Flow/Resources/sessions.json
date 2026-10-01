@@ -1,0 +1,18 @@
+[
+  {
+    "id": "small-pause",
+    "title": "a small pause",
+    "detail": "a little room in the middle of your day.",
+    "duration": 120,
+    "contentRevision": 1,
+    "phases": [{"kind": "inhale", "duration": 4}, {"kind": "exhale", "duration": 4}]
+  },
+  {
+    "id": "quiet-five",
+    "title": "a quiet five",
+    "detail": "a longer moment, with nowhere to get to.",
+    "duration": 300,
+    "contentRevision": 1,
+    "phases": [{"kind": "inhale", "duration": 4}, {"kind": "exhale", "duration": 4}]
+  }
+]
