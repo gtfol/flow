@@ -1,19 +1,20 @@
 import AVFoundation
 import UIKit
 
-@MainActor final class AudioController: NSObject, SessionAudio, AVAudioPlayerDelegate, AVSpeechSynthesizerDelegate {
+@MainActor final class AudioController: NSObject, SessionAudio, AVAudioPlayerDelegate {
     var onInterruption: ((String) -> Void)?
     private var ambient: AVAudioPlayer?
     private var tone: AVAudioPlayer?
-    private var speech: AVSpeechSynthesizer?
+    private var introduction: AVAudioPlayer?
+    private let introductionURL: URL?
     private var observers: [NSObjectProtocol] = []
     private var retiringPlayers: [AVAudioPlayer] = []
     private var fadeTask: Task<Void, Never>?
-    private var voiceTimeout: Task<Void, Never>?
     private var sessionActive = false
-    private var speechDidStart = false
+    var isIntroductionPlaying: Bool { introduction?.isPlaying == true }
 
-    override init() {
+    init(introductionURL: URL? = Bundle.main.url(forResource: "introduction", withExtension: "mp3")) {
+        self.introductionURL = introductionURL
         super.init()
         let center = NotificationCenter.default
         observers.append(center.addObserver(forName: AVAudioSession.interruptionNotification,
@@ -45,7 +46,6 @@ import UIKit
     deinit {
         observers.forEach(NotificationCenter.default.removeObserver)
         fadeTask?.cancel()
-        voiceTimeout?.cancel()
     }
 
     func startAmbient(preferences: Preferences) throws {
@@ -91,61 +91,58 @@ import UIKit
     }
 
     func stopAll() {
-        voiceTimeout?.cancel()
-        voiceTimeout = nil
-        speech?.delegate = nil
-        speech?.stopSpeaking(at: .immediate)
-        speech = nil
+        introduction?.delegate = nil
+        introduction?.stop()
+        introduction = nil
         stopSound()
     }
 
-    func speakIntroduction(_ text: String) throws -> String? {
+    func playIntroduction() throws -> String? {
         stopAll()
         finishFades()
-        // Only use an enumerated, already-available English system voice.
-        // There is no voice-download API or network client in flow.
-        guard let voice = AVSpeechSynthesisVoice.speechVoices().first(where: {
-            $0.language.hasPrefix("en") && $0.quality == .default && !$0.voiceTraits.contains(.isPersonalVoice)
-        }) else {
-            return "an offline voice is not available. the full introduction is here to read."
+        deactivateIfQuiet()
+        guard let introductionURL else {
+            deactivateIfQuiet()
+            return "the introduction audio is unavailable. the full introduction is here to read."
         }
+        let player = try AVAudioPlayer(contentsOf: introductionURL)
+        player.delegate = self
+        player.volume = 0.8
+        guard player.prepareToPlay() else { throw AudioError.playbackFailed }
         try activate()
-        let synthesizer = AVSpeechSynthesizer()
-        synthesizer.delegate = self
-        speech = synthesizer
-        speechDidStart = false
-        let utterance = AVSpeechUtterance(string: text)
-        utterance.voice = voice
-        utterance.rate = 0.43
-        utterance.volume = 0.65
-        synthesizer.speak(utterance)
-        voiceTimeout = Task { [weak self] in
-            do { try await Task.sleep(for: .seconds(5)) } catch { return }
-            guard let self, !self.speechDidStart else { return }
-            self.stopAll()
-            self.onInterruption?("the offline voice could not start. read the introduction and resume when ready.")
+        guard player.play() else {
+            deactivateIfQuiet()
+            throw AudioError.playbackFailed
         }
+        introduction = player
         return nil
-    }
-
-    nonisolated func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didStart utterance: AVSpeechUtterance) {
-        Task { @MainActor [weak self] in self?.speechDidStart = true; self?.voiceTimeout?.cancel() }
-    }
-
-    nonisolated func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
-        Task { @MainActor [weak self] in self?.deactivateIfQuiet() }
     }
 
     nonisolated func audioPlayerDecodeErrorDidOccur(_ player: AVAudioPlayer, error: Error?) {
         Task { @MainActor [weak self] in
-            self?.onInterruption?("an audio file could not play. resume to retry, or turn sound off.")
+            guard let self, self.isCurrent(player) else { return }
+            self.stopAll()
+            self.onInterruption?("an audio file could not play. resume to retry, or turn sound off.")
         }
     }
 
     nonisolated func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
-        if !flag {
-            Task { @MainActor [weak self] in self?.onInterruption?("audio playback stopped unexpectedly. resume to retry, or turn sound off.") }
+        Task { @MainActor [weak self] in
+            guard let self, self.isCurrent(player) else { return }
+            if self.introduction === player { self.introduction = nil }
+            if self.tone === player { self.tone = nil }
+            if self.ambient === player { self.ambient = nil }
+            player.delegate = nil
+            if !flag {
+                self.stopAll()
+                self.onInterruption?("audio playback stopped unexpectedly. resume to retry, or turn sound off.")
+            }
+            self.deactivateIfQuiet()
         }
+    }
+
+    private func isCurrent(_ player: AVAudioPlayer) -> Bool {
+        introduction === player || ambient === player || tone === player
     }
 
     private func activate() throws {
@@ -171,7 +168,7 @@ import UIKit
     }
 
     private func deactivateIfQuiet() {
-        guard ambient == nil, tone == nil, speech?.isSpeaking != true, sessionActive else { return }
+        guard ambient == nil, tone == nil, introduction == nil, sessionActive else { return }
         sessionActive = false
         do {
             try AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)

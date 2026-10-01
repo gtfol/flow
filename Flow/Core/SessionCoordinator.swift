@@ -8,8 +8,8 @@ import Observation
     func setVolumes(ambient: Float, cue: Float)
     func stopSound()
     func stopAll()
-    /// Returns a readable fallback if no already-installed voice is available.
-    func speakIntroduction(_ text: String) throws -> String?
+    /// Plays the bundled narration, or returns a readable fallback if it is missing.
+    func playIntroduction() throws -> String?
 }
 
 @MainActor @Observable final class SessionCoordinator {
@@ -35,7 +35,7 @@ import Observation
         guard engine.state == .idle else { return }
         engine.beginIntroduction()
         if preferences.spokenIntroduction {
-            do { notice = try audio.speakIntroduction(Guidance.introduction) }
+            do { notice = try audio.playIntroduction() }
             catch { interrupt("spoken guidance could not start. resume to continue with the text, or stop.") }
         }
     }

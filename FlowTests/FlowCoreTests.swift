@@ -35,9 +35,9 @@ import XCTest
     func setVolumes(ambient: Float, cue: Float) {}
     func stopSound() { soundPlaying = false }
     func stopAll() { stops += 1; soundPlaying = false; speechPlaying = false }
-    func speakIntroduction(_ text: String) throws -> String? {
+    func playIntroduction() throws -> String? {
         if failSpeech { throw Failure.failed }
-        if noVoice { return "offline voice unavailable" }
+        if noVoice { return "introduction audio unavailable" }
         speeches += 1
         speechPlaying = true
         return nil
@@ -256,7 +256,7 @@ import XCTest
         XCTAssertEqual(audio.starts, 0)
     }
 
-    func testMissingOfflineVoiceHasReadableFallbackAndNoTimedProgress() async throws {
+    func testMissingNarrationHasReadableFallbackAndNoTimedProgress() async throws {
         let storage = store(), clock = FakeClock(), audio = FakeAudio()
         storage.preferences.spokenIntroduction = true
         audio.noVoice = true

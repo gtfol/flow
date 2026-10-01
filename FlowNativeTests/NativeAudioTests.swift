@@ -11,6 +11,95 @@ import AVFoundation
             XCTAssertEqual(player.numberOfChannels, 2)
             XCTAssertTrue(player.prepareToPlay())
         }
+        let narration = try AVAudioPlayer(contentsOf: XCTUnwrap(Bundle.main.url(forResource: "introduction", withExtension: "mp3")))
+        XCTAssertEqual(narration.duration, 27.6375, accuracy: 0.05)
+        XCTAssertEqual(narration.numberOfChannels, 1)
+        XCTAssertTrue(narration.prepareToPlay())
+    }
+
+    func testNarrationStopsOnBeginCancelAndRepeatedSessions() async throws {
+        let data = try Data(contentsOf: XCTUnwrap(Bundle.main.url(forResource: "sessions", withExtension: "json")))
+        let definition = try XCTUnwrap(SessionDefinition.load(data: data).first)
+        let audio = AudioController()
+        let storage = SessionStore(defaults: UserDefaults(suiteName: "flow.narration.\(UUID().uuidString)")!)
+        storage.preferences.spokenIntroduction = true
+        storage.preferences.sound = false
+        for _ in 0..<3 {
+            let engine = SessionEngine(definition: definition, clock: ContinuousTimeSource())
+            let coordinator = SessionCoordinator(engine: engine, audio: audio, store: storage)
+            coordinator.start()
+            XCTAssertTrue(audio.isIntroductionPlaying)
+            XCTAssertEqual(engine.elapsed, 0)
+            coordinator.resume(automaticallyRefresh: false)
+            XCTAssertFalse(audio.isIntroductionPlaying)
+            XCTAssertEqual(engine.state, .running)
+            coordinator.cancel()
+            XCTAssertFalse(audio.isIntroductionPlaying)
+            try await Task.sleep(for: .milliseconds(130))
+        }
+        XCTAssertTrue(storage.history.isEmpty)
+    }
+
+    func testNarrationCompletionDoesNotStartBreathingAutomatically() async throws {
+        let data = try Data(contentsOf: XCTUnwrap(Bundle.main.url(forResource: "sessions", withExtension: "json")))
+        let definition = try XCTUnwrap(SessionDefinition.load(data: data).first)
+        // A short bundled recording exercises the real completion callback without a 28-second wait.
+        let audio = AudioController(introductionURL: try XCTUnwrap(Bundle.main.url(forResource: "inhale", withExtension: "wav")))
+        let storage = SessionStore(defaults: UserDefaults(suiteName: "flow.narration.end.\(UUID().uuidString)")!)
+        storage.preferences.spokenIntroduction = true
+        let engine = SessionEngine(definition: definition, clock: ContinuousTimeSource())
+        let coordinator = SessionCoordinator(engine: engine, audio: audio, store: storage)
+        coordinator.start()
+        XCTAssertTrue(audio.isIntroductionPlaying)
+        try await Task.sleep(for: .milliseconds(1200))
+        XCTAssertFalse(audio.isIntroductionPlaying)
+        XCTAssertEqual(engine.state, .introduction)
+        XCTAssertEqual(engine.elapsed, 0)
+        XCTAssertNil(coordinator.notice)
+        coordinator.cancel()
+    }
+
+    func testMissingNarrationFallsBackAndInvalidAudioPauses() async throws {
+        let data = try Data(contentsOf: XCTUnwrap(Bundle.main.url(forResource: "sessions", withExtension: "json")))
+        let definition = try XCTUnwrap(SessionDefinition.load(data: data).first)
+        let missing = AudioController(introductionURL: nil)
+        XCTAssertNotNil(try missing.playIntroduction())
+        XCTAssertFalse(missing.isIntroductionPlaying)
+        let invalid = AudioController(introductionURL: try XCTUnwrap(Bundle.main.url(forResource: "sessions", withExtension: "json")))
+        let storage = SessionStore(defaults: UserDefaults(suiteName: "flow.narration.invalid.\(UUID().uuidString)")!)
+        storage.preferences.spokenIntroduction = true
+        let engine = SessionEngine(definition: definition, clock: ContinuousTimeSource())
+        let coordinator = SessionCoordinator(engine: engine, audio: invalid, store: storage)
+        coordinator.start()
+        XCTAssertEqual(engine.state, .interrupted)
+        XCTAssertNotNil(engine.interruptionReason)
+        XCTAssertFalse(invalid.isIntroductionPlaying)
+        XCTAssertTrue(storage.history.isEmpty)
+        coordinator.cancel()
+    }
+
+    func testNarrationStopsOnInterruptionAndDoesNotReplay() async throws {
+        let data = try Data(contentsOf: XCTUnwrap(Bundle.main.url(forResource: "sessions", withExtension: "json")))
+        let definition = try XCTUnwrap(SessionDefinition.load(data: data).first)
+        let audio = AudioController()
+        let storage = SessionStore(defaults: UserDefaults(suiteName: "flow.narration.interruption.\(UUID().uuidString)")!)
+        storage.preferences.spokenIntroduction = true
+        storage.preferences.sound = false
+        let engine = SessionEngine(definition: definition, clock: ContinuousTimeSource())
+        let coordinator = SessionCoordinator(engine: engine, audio: audio, store: storage)
+        coordinator.start()
+        XCTAssertTrue(audio.isIntroductionPlaying)
+        NotificationCenter.default.post(name: AVAudioSession.routeChangeNotification,
+                                        object: AVAudioSession.sharedInstance(),
+                                        userInfo: [AVAudioSessionRouteChangeReasonKey: AVAudioSession.RouteChangeReason.oldDeviceUnavailable.rawValue])
+        try await Task.sleep(for: .milliseconds(150))
+        XCTAssertFalse(audio.isIntroductionPlaying)
+        XCTAssertEqual(engine.state, .interrupted)
+        XCTAssertEqual(engine.elapsed, 0)
+        coordinator.resume(automaticallyRefresh: false)
+        XCTAssertEqual(engine.state, .running)
+        XCTAssertFalse(audio.isIntroductionPlaying)
+        coordinator.cancel()
     }
 
     func testNativeNotificationsPauseWithoutAutomaticResume() async throws {

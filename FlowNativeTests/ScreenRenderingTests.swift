@@ -10,7 +10,7 @@ import SwiftUI
     func setVolumes(ambient: Float, cue: Float) {}
     func stopSound() {}
     func stopAll() {}
-    func speakIntroduction(_ text: String) throws -> String? { nil }
+    func playIntroduction() throws -> String? { nil }
 }
 
 /// Actual compiled SwiftUI views in a simulator UIWindow. These are deterministic

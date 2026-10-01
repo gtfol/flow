@@ -39,9 +39,12 @@ struct PlayerView: View {
                     if !typeSize.isAccessibilitySize {
                         BreathingVisual(phase: nil, running: true, reduceMotion: true).frame(height: 190)
                     }
-                    Text(Guidance.introduction).font(.body).lineSpacing(5)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .accessibilityIdentifier("introduction")
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text(Guidance.introductionTitle).font(.caption).foregroundStyle(FlowStyle.muted)
+                        Text(Guidance.introduction).font(.body).lineSpacing(5)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityIdentifier("introduction")
+                    }
                 } else {
                     if !typeSize.isAccessibilitySize {
                         BreathingVisual(phase: engine.phase, running: engine.state == .running,

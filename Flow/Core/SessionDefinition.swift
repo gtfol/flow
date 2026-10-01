@@ -83,7 +83,8 @@ private func rejectUnknownKeys(_ decoder: Decoder, allowed: Set<String>) throws 
 }
 
 enum Guidance {
-    static let introduction = "Find a comfortable seat or lie down somewhere safe. Let your breathing stay easy. Take a moment to settle in. You can follow the gentle cue if it feels comfortable, or keep your own rhythm. Do not force a deeper breath. Stop whenever you want."
+    static let introductionTitle = "introduction · elevenlabs.io"
+    static let introduction = "Find a comfortable place to sit, or lie down. Let your shoulders soften. Let your breathing stay easy. There's no need to make it deeper. For the next few minutes, simply notice your breath. Follow the gentle cue if it feels comfortable, or stay with your own rhythm. You can pause or stop whenever you need."
     static let ending = "Let go of the cue and return to your usual breathing. Take a moment before moving on."
     static let safety = "Use this seated or lying down in a safe place, never while driving, in water, or operating equipment. Keep breathing comfortable; do not force it or hold your breath. Stop if you feel dizzy, tingly, breathless, or unwell. If you have a medical condition, are pregnant, or are unsure whether breathing exercises suit you, ask a healthcare professional. Chest pain, fainting, or severe breathing trouble needs urgent medical help, not another session."
 }

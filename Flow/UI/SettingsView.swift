@@ -25,7 +25,7 @@ struct SettingsView: View {
                     Toggle("gentle haptics", isOn: $store.preferences.haptics)
                 } header: { Text("make it yours") }
                 footer: {
-                    Text("speech is separate from sound and uses an available on-device voice. if no offline voice is available, read the introduction on screen. phase tones and haptics accompany gentle pace only. haptics depend on your device.")
+                    Text("the spoken introduction plays offline and is separate from ambient sound. you can also read it on screen. phase tones and haptics accompany gentle pace only. haptics depend on your device.")
                 }
 
                 Section {
@@ -76,7 +76,8 @@ struct SourceNotesView: View {
                 Text("a few notes on flow.").font(.system(.largeTitle, design: .serif))
                 note("the experience", "Othership’s public app experience informed the atmosphere and focus on sound. flow’s interface, vector artwork, session names, guidance, and synthesized audio are original. no Othership recordings or subscription content are included.")
                 note("the breathing", "NHS guidance supports gentle, comfortable breathing without forcing and optional counting. flow’s 4-second in / 4-second out cue is a product choice, not an NHS protocol or a clinical recommendation. natural breathing is the default.")
-                note("the sound", "one original ambient bed and two soft phase tones were synthesized locally. speech uses an available on-device system voice and is never recorded or bundled. this first soundscape is not a professionally produced guided session.")
+                note("the sound", "one original ambient bed and two soft phase tones were synthesized locally. the optional introduction is an AI-generated recording using Sarah’s voice from ElevenLabs. all audio plays offline.")
+                note(Guidance.introductionTitle, "original words, voiced with elevenlabs.io. shared for noncommercial use with attribution.")
                 note("the boundaries", "flow is for general wellness. it offers no diagnosis, treatment, breath tests, breath holds, or intense breathing routines. follow your comfort, and stop whenever you want.")
                 VStack(alignment: .leading, spacing: 12) {
                     Text("references · internet needed to open").font(.footnote).foregroundStyle(FlowStyle.muted)

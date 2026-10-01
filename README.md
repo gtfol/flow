@@ -50,7 +50,8 @@ Settings provide separate ambient/tone volume controls, independent sound and sp
 - **Platform:** native iPhone, SwiftUI, iOS 17+. No web app, Android app, or backend is included.
 - **Reference:** Othership's public [app page](https://www.othership.us/app) and [App Store screenshots](https://apps.apple.com/us/app/othership-guided-breathwork/id1590348936) informed the immersive, sound-led approach, atmospheric session selection, and focused player. Flow uses original vector light studies, a dark ink / sage palette, and system serif and sans-serif typography. No recordings, subscription content, artwork, claims, names, or distinctive layouts were copied.
 - **gtfol reference:** inspected the local capsule iPhone project from gtfol/capsule. Its separated core/presentation structure, lowercase interface, native controls, and generous spacing informed this project. No capsule application code, font files, or account integration were copied.
-- **Audio:** the original synthesized bed and tones are a usable first soundscape, not studio-produced music or narration. System speech is optional, English, and restricted to an enumerated default voice. No system voice is recorded or redistributed. The outro is visible text only.
+- **Audio:** the original synthesized bed and tones accompany an optional, bundled Sarah introduction generated with ElevenLabs. The owner selected the voice after audition. All playback is offline; no system speech, runtime AI service, or subscription is needed. The recording is titled **introduction · elevenlabs.io** and shared for noncommercial use with attribution; see [ASSETS.md](ASSETS.md) for provenance and restrictions. The outro is visible text only.
+- **Availability:** the owner intends flow to be free on the App Store, with no monetization. The narration's Free-plan license is limited to noncommercial use; free app pricing does not itself license commercial reuse.
 - **Repository/distribution:** this repository follows the gtfol/vitals layout, with reproducible Xcode project generation and GitHub Actions for core tests, iPhone builds, native tests, and screenshot artifacts. See [distribution](docs/DISTRIBUTION.md) for release steps. No source license has been selected.
 
 ## Timing and lifecycle
@@ -74,15 +75,15 @@ History deletion leaves preferences and bundled definitions alone. There is no a
 ## Source layout
 
 - `Flow/Core`: strict declarative definitions, monotonic engine, coordinator/audio seam, local store.
-- `Flow/Audio`: native audio session handling, bundled audio playback, optional on-device introduction.
+- `Flow/Audio`: native audio session handling, bundled audio playback, optional recorded introduction.
 - `Flow/UI`: home, setup/safety, player/finish, settings/source notes, vector visuals.
-- `Flow/Resources`: validated session JSON, WAVs, icon, privacy manifest.
+- `Flow/Resources`: validated session JSON, WAVs, introduction MP3, icon, privacy manifest.
 - `FlowTests`: fake-clock and fake-audio regression tests.
 - `FlowNativeTests`: iPhone-hosted audio integration and native rendering checks.
 - `FlowUITests`: actual session navigation, first and repeat starts, safety acknowledgement, and natural/paced playback controls.
 - `scripts`: reproducible audio/icon synthesis and optional project regeneration.
 
-Definitions reject unknown fields, unsupported phases, holds, nonpositive or nonfinite durations, durations over five minutes, and any phase pair other than the approved 4/4 inhale/exhale. Content revisions are explicit. There is no import UI or custom protocol editor. Future owned narration can implement the `SessionAudio` introduction seam without changing the clock or history logic.
+Definitions reject unknown fields, unsupported phases, holds, nonpositive or nonfinite durations, durations over five minutes, and any phase pair other than the approved 4/4 inhale/exhale. Content revisions are explicit. There is no import UI or custom protocol editor. `SessionAudio.playIntroduction()` keeps recorded narration separate from the clock and history logic.
 
 ## Safety and content
 

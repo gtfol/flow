@@ -7,21 +7,24 @@ Verified October 1, 2026, on this Mac with Xcode 26.6 (17F113), Swift 6.3.3, and
 | Check | Result |
 | --- | --- |
 | macOS core tests | 19 passed, 0 failed |
-| iPhone-hosted simulator tests | 23 passed, 0 failed: 19 core, 3 native audio, 1 multi-screen rendering test |
-| Session navigation UI tests | 3 passed, 0 failed on build 2: first and repeated natural starts, paced-to-natural playback, standalone safety review |
+| iPhone-hosted simulator tests | 27 passed, 0 failed on build 3: 19 core, 7 native audio, 1 multi-screen rendering test |
+| Session navigation UI tests | 3 passed, 0 failed on build 3 in a dedicated simulator: first and repeated natural starts, paced-to-natural playback, standalone safety review |
 | Simulator Debug build and launch | Passed; app installed and launched |
-| Physical iPhone Release compilation | Passed with signing disabled; compilation only, no device installation |
-| Native audio resources | All three WAVs decode through AVAudioPlayer with expected duration and channel count |
+| iPhone Release archive | Build 3 signed archive succeeded; code signature, bundle identity, build number, and selected narration hash verified; no physical-device installation performed |
+| Native audio resources | All three WAVs and the 27.64-second Sarah MP3 decode through AVAudioPlayer with expected duration and channel count |
 | Audio lifecycle integration | Posted actual AVAudioSession notification types for interruption, route removal, media reset, and media loss; each paused the coordinator; interruption end with “should resume” did not resume |
 | Repeat native playback | Three ambient/cue start-stop cycles completed without an error callback in the simulator |
+| Recorded introduction | Real playback starts, stops on begin/cancel/route interruption, repeats across sessions, and finishes without starting the breathing timer; missing file falls back to text, invalid audio pauses with recovery text |
 | Digital audio checks | No clipped samples; first/last stereo frames are zero; measured headroom and sample steps saved in `audio-checks.json` and resource metrics |
 | Native visual review | Nine production SwiftUI screens rendered at standard text and Accessibility 5; static-motion player also rendered at standard text |
 
 The native audio tests verify API behavior, not audible output quality or real accessory behavior. The iOS run used `CODE_SIGNING_ALLOWED=NO` for simulator testing. Flow does not use Keychain. The initial signed simulator build required clearing Finder/resource-fork metadata from the generated app bundle in this Documents workspace; this was an environment issue, not a source compile error.
 
+Build 3's first UI run encountered another app (`dev.gtfol.vitals`) taking foreground on the shared simulator; its logs show those activations during taps. Two navigation checks failed in that run. The same unmodified checks passed on a new, dedicated iPhone 17 Pro simulator. Native/core results are retained in `/private/tmp/flow-build3/Tests.xcresult`; the isolated UI results are in `/private/tmp/flow-build3/UITests-isolated.xcresult`.
+
 ## Automated coverage
 
-The test suite exercises both bundled session lengths and content revisions; rejection of unsupported/hold phases, unknown schema fields, empty/duplicate definitions, bad durations, and bad revisions; exact phase boundaries; delayed updates without drift or queued stale tones; completion clamping; accumulated active time across pause/resume; inhale-boundary restart; natural-mode switching; interruptions/background/route/media callbacks; audio activation and cue failures; cancellation and repeated starts; optional speech and missing-voice fallback; preference defaults/relaunch; history deduplication and deletion.
+The test suite exercises both bundled session lengths and content revisions; rejection of unsupported/hold phases, unknown schema fields, empty/duplicate definitions, bad durations, and bad revisions; exact phase boundaries; delayed updates without drift or queued stale tones; completion clamping; accumulated active time across pause/resume; inhale-boundary restart; natural-mode switching; interruptions/background/route/media callbacks; audio activation and cue failures; cancellation and repeated starts; optional narration and missing-file fallback; preference defaults/relaunch; history deduplication and deletion.
 
 Native tests additionally decode the bundled assets, run repeated AVAudioPlayer playback, and check the actual notification-to-coordinator connection. Timing tests inject a monotonic clock. Real-world background timing, Bluetooth behavior, and acoustic transitions still require hardware testing.
 
@@ -44,7 +47,7 @@ No clipped text within controls or overlapping buttons remained in the reviewed 
 - **Remaining interactive checks:** automated UI coverage now exercises launch and playback controls. Complete both full durations through the UI and check changes to sound, completion history, and relaunch manually.
 - **Physical iPhone:** device discovery found a known device but it was disconnected. Check airplane-mode launch/use, both complete durations, screen lock, app switching, incoming calls/audio interruptions, headphone and Bluetooth disconnection, media-service recovery, and repeated sessions.
 - **Listening:** listen to a full ambient loop and both tones on speaker and headphones at a comfortable device level. Check the loop seam, 80 ms pause/stop release, resume fade-in, relative tone level, clicks, and perceived loudness. The files have not been approved by listening; no claim of acoustic verification is made.
-- **Speech offline:** validate installed/default voice availability in airplane mode, missing-voice fallback, and speech interruption on an actual phone. Voice download is not part of the app.
+- **Narration on a physical phone:** the owner chose Sarah's audition; the bundled MP3 matches it byte-for-byte. Check its playback level and stop behavior on phone speaker/headphones and in airplane mode. No system voice or voice download remains.
 - **Accessibility:** check VoiceOver navigation and focus, real Reduce Motion/Increase Contrast settings, largest text scrolling through all content, and stop reachability on smaller iPhone screens. No VoiceOver speech is scheduled every second.
 - **iOS 17 runtime:** the deployment target is iOS 17 and all code compiled against that target, but the available runtime used for execution was iOS 26.5. An iOS 17 physical device/runtime has not been tested.
 

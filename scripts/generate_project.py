@@ -41,14 +41,14 @@ def configs(name, settings):
 
 
 def reference(path):
-    types = {".swift": "sourcecode.swift", ".json": "text.json", ".wav": "audio.wav",
+    types = {".swift": "sourcecode.swift", ".json": "text.json", ".wav": "audio.wav", ".mp3": "audio.mp3",
              ".xcprivacy": "text.xml", ".xcassets": "folder.assetcatalog"}
     return add(str(path) + "ref", "PBXFileReference", path=str(path),
                lastKnownFileType=types.get(path.suffix, "text"), sourceTree="<group>")
 
 
 sources = [path.relative_to(ROOT) for path in sorted((ROOT / "Flow").rglob("*.swift"))]
-resources = [Path("Flow/Resources") / name for name in ["sessions.json", "ambient.wav", "inhale.wav", "exhale.wav", "PrivacyInfo.xcprivacy", "Assets.xcassets"]]
+resources = [Path("Flow/Resources") / name for name in ["sessions.json", "ambient.wav", "inhale.wav", "exhale.wav", "introduction.mp3", "PrivacyInfo.xcprivacy", "Assets.xcassets"]]
 refs = {str(path): reference(path) for path in sources + resources}
 source_builds = [add(str(path) + "build", "PBXBuildFile", fileRef=refs[str(path)]) for path in sources]
 resource_builds = [add(str(path) + "build", "PBXBuildFile", fileRef=refs[str(path)]) for path in resources]
@@ -70,7 +70,7 @@ target_config = configs("target", {
     "INFOPLIST_KEY_UIUserInterfaceStyle": "Dark", "TARGETED_DEVICE_FAMILY": "1",
     "SUPPORTED_PLATFORMS": "iphoneos iphonesimulator", "SUPPORTS_MACCATALYST": "NO",
     "ASSETCATALOG_COMPILER_APPICON_NAME": "AppIcon", "CODE_SIGN_STYLE": "Automatic", "DEVELOPMENT_TEAM": "J59ZSG67SJ",
-    "CURRENT_PROJECT_VERSION": "2", "MARKETING_VERSION": "0.1.0",
+    "CURRENT_PROJECT_VERSION": "3", "MARKETING_VERSION": "0.1.0",
     "SWIFT_EMIT_LOC_STRINGS": "YES", "LD_RUNPATH_SEARCH_PATHS": ["$(inherited)", "@executable_path/Frameworks"]
 })
 target = add("target", "PBXNativeTarget", name="Flow", productName="flow", productReference=app,
