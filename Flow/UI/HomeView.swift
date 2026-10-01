@@ -46,7 +46,7 @@ struct HomeView: View {
                     }
                     HStack(spacing: 9) {
                         Image(systemName: "waveform")
-                        Text("sound on, if you like. nothing to achieve.")
+                        Text("sound on, if you like. a moment for yourself.")
                     }.font(.footnote).foregroundStyle(FlowStyle.muted)
                         .padding(.top, 2)
                 }.padding(.horizontal, 24).padding(.top, 8).padding(.bottom, 30)

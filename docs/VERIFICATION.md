@@ -1,6 +1,6 @@
 # Verification
 
-Verified October 1, 2026, on this Mac with Xcode 26.6 (17F113), Swift 6.3.3, and an iPhone 17 Pro simulator running iOS 26.5. These checks describe the first implementation. Repository and distribution setup are documented separately in [distribution](DISTRIBUTION.md).
+Verified October 1, 2026, on this Mac with Xcode 26.6 (17F113), Swift 6.3.3, and an iPhone 17 Pro simulator running iOS 26.5. Repository and distribution setup are documented separately in [distribution](DISTRIBUTION.md).
 
 ## Results
 
@@ -8,6 +8,7 @@ Verified October 1, 2026, on this Mac with Xcode 26.6 (17F113), Swift 6.3.3, and
 | --- | --- |
 | macOS core tests | 19 passed, 0 failed |
 | iPhone-hosted simulator tests | 23 passed, 0 failed: 19 core, 3 native audio, 1 multi-screen rendering test |
+| Session navigation UI tests | 3 passed, 0 failed on build 2: first and repeated natural starts, paced-to-natural playback, standalone safety review |
 | Simulator Debug build and launch | Passed; app installed and launched |
 | Physical iPhone Release compilation | Passed with signing disabled; compilation only, no device installation |
 | Native audio resources | All three WAVs decode through AVAudioPlayer with expected duration and channel count |
@@ -24,6 +25,12 @@ The test suite exercises both bundled session lengths and content revisions; rej
 
 Native tests additionally decode the bundled assets, run repeated AVAudioPlayer playback, and check the actual notification-to-coordinator connection. Timing tests inject a monotonic clock. Real-world background timing, Bluetooth behavior, and acoustic transitions still require hardware testing.
 
+## Session launch regression
+
+The original build's black screen was reproduced by opening a small pause, starting a natural session, and acknowledging safety. The player cover used a Boolean independently of its optional coordinator, which allowed empty content. Build 2 presents the coordinator as the cover's identifiable item and waits for the safety sheet's dismissal callback before starting the player.
+
+The new UI test target taps through the production app instead of directly constructing a player. It checks first-time natural breathing after safety acknowledgement, advancing remaining time, pause/resume, stop/done, another start without safety, paced breathing switching to natural, and opening safety notes without starting a session.
+
 ## Screen review
 
 [Screenshot index](screenshots/README.md) includes home, setup, safety, introduction, natural player, paced player, paused player, finish, and settings. The test harness presents actual compiled SwiftUI views in a simulator UIWindow and captures that hierarchy. Fake clocks put the player in precise states; a silent audio adapter avoids sounding every rendering fixture. These are **native rendering captures**, not design mockups, and not evidence of a completed manual navigation walkthrough. They omit the system status bar.
@@ -34,7 +41,7 @@ No clipped text within controls or overlapping buttons remained in the reviewed 
 
 ## Checks still needed
 
-- **Interactive walkthrough:** the Mac was locked, so the computer-control tool could not operate Simulator. Unlock was requested; the walkthrough remains unverified. Launch each session, review safety, change sound settings, pause/resume, return to natural mode, stop, finish, and relaunch through the actual controls.
+- **Remaining interactive checks:** automated UI coverage now exercises launch and playback controls. Complete both full durations through the UI and check changes to sound, completion history, and relaunch manually.
 - **Physical iPhone:** device discovery found a known device but it was disconnected. Check airplane-mode launch/use, both complete durations, screen lock, app switching, incoming calls/audio interruptions, headphone and Bluetooth disconnection, media-service recovery, and repeated sessions.
 - **Listening:** listen to a full ambient loop and both tones on speaker and headphones at a comfortable device level. Check the loop seam, 80 ms pause/stop release, resume fade-in, relative tone level, clicks, and perceived loudness. The files have not been approved by listening; no claim of acoustic verification is made.
 - **Speech offline:** validate installed/default voice availability in airplane mode, missing-voice fallback, and speech interruption on an actual phone. Voice download is not part of the app.

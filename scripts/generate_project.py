@@ -70,7 +70,7 @@ target_config = configs("target", {
     "INFOPLIST_KEY_UIUserInterfaceStyle": "Dark", "TARGETED_DEVICE_FAMILY": "1",
     "SUPPORTED_PLATFORMS": "iphoneos iphonesimulator", "SUPPORTS_MACCATALYST": "NO",
     "ASSETCATALOG_COMPILER_APPICON_NAME": "AppIcon", "CODE_SIGN_STYLE": "Automatic", "DEVELOPMENT_TEAM": "J59ZSG67SJ",
-    "CURRENT_PROJECT_VERSION": "1", "MARKETING_VERSION": "0.1.0",
+    "CURRENT_PROJECT_VERSION": "2", "MARKETING_VERSION": "0.1.0",
     "SWIFT_EMIT_LOC_STRINGS": "YES", "LD_RUNPATH_SEARCH_PATHS": ["$(inherited)", "@executable_path/Frameworks"]
 })
 target = add("target", "PBXNativeTarget", name="Flow", productName="flow", productReference=app,
@@ -95,19 +95,37 @@ dependency = add("test-dependency", "PBXTargetDependency", target=target, target
 test_target = add("test-target", "PBXNativeTarget", name="FlowTests", productName="FlowTests",
                   productReference=test_product, productType="com.apple.product-type.bundle.unit-test",
                   buildConfigurationList=test_config, buildPhases=[test_phase], buildRules=[], dependencies=[dependency])
+ui_sources = [path.relative_to(ROOT) for path in sorted((ROOT / "FlowUITests").glob("*.swift"))]
+ui_refs = [reference(path) for path in ui_sources]
+objects[group]["children"].extend(ui_refs)
+ui_builds = [add(str(path) + "build", "PBXBuildFile", fileRef=ref) for path, ref in zip(ui_sources, ui_refs)]
+ui_phase = add("ui-sources", "PBXSourcesBuildPhase", buildActionMask=2147483647, files=ui_builds, runOnlyForDeploymentPostprocessing=0)
+ui_product = add("ui-product", "PBXFileReference", explicitFileType="wrapper.cfbundle", path="FlowUITests.xctest", sourceTree="BUILT_PRODUCTS_DIR")
+objects[products]["children"].append(ui_product)
+ui_config = configs("ui-tests", {
+    "PRODUCT_NAME": "FlowUITests", "PRODUCT_BUNDLE_IDENTIFIER": "dev.gtfol.flow.uitests",
+    "GENERATE_INFOPLIST_FILE": "YES", "TARGETED_DEVICE_FAMILY": "1", "TEST_TARGET_NAME": "Flow",
+    "CODE_SIGN_STYLE": "Automatic", "DEVELOPMENT_TEAM": "J59ZSG67SJ",
+    "LD_RUNPATH_SEARCH_PATHS": ["$(inherited)", "@executable_path/Frameworks", "@loader_path/Frameworks"]
+})
+ui_dependency = add("ui-dependency", "PBXTargetDependency", target=target, targetProxy=proxy)
+ui_target = add("ui-target", "PBXNativeTarget", name="FlowUITests", productName="FlowUITests",
+                productReference=ui_product, productType="com.apple.product-type.bundle.ui-testing",
+                buildConfigurationList=ui_config, buildPhases=[ui_phase], buildRules=[], dependencies=[ui_dependency])
 project = add("project", "PBXProject", attributes={"LastUpgradeCheck": "2660"}, buildConfigurationList=project_config,
               compatibilityVersion="Xcode 14.0", developmentRegion="en", knownRegions=["en", "Base"],
-              mainGroup=group, productRefGroup=products, projectDirPath="", projectRoot="", targets=[target, test_target])
+              mainGroup=group, productRefGroup=products, projectDirPath="", projectRoot="", targets=[target, test_target, ui_target])
 PROJECT.mkdir(exist_ok=True)
 (PROJECT / "project.pbxproj").write_text("// !$*UTF8*$!\n" + encode({"archiveVersion": 1, "classes": {}, "objectVersion": 56, "objects": objects, "rootObject": project}) + "\n")
 scheme_dir = PROJECT / "xcshareddata" / "xcschemes"
 scheme_dir.mkdir(parents=True, exist_ok=True)
 ref = f'<BuildableReference BuildableIdentifier="primary" BlueprintIdentifier="{target}" BuildableName="flow.app" BlueprintName="Flow" ReferencedContainer="container:Flow.xcodeproj"/>'
 test_ref = f'<BuildableReference BuildableIdentifier="primary" BlueprintIdentifier="{test_target}" BuildableName="FlowTests.xctest" BlueprintName="FlowTests" ReferencedContainer="container:Flow.xcodeproj"/>'
+ui_ref = f'<BuildableReference BuildableIdentifier="primary" BlueprintIdentifier="{ui_target}" BuildableName="FlowUITests.xctest" BlueprintName="FlowUITests" ReferencedContainer="container:Flow.xcodeproj"/>'
 (scheme_dir / "Flow.xcscheme").write_text(f'''<?xml version="1.0" encoding="UTF-8"?>
 <Scheme LastUpgradeVersion="2660" version="1.7">
 <BuildAction parallelizeBuildables="YES" buildImplicitDependencies="YES"><BuildActionEntries><BuildActionEntry buildForTesting="YES" buildForRunning="YES" buildForProfiling="YES" buildForArchiving="YES" buildForAnalyzing="YES">{ref}</BuildActionEntry></BuildActionEntries></BuildAction>
-<TestAction buildConfiguration="Debug" selectedDebuggerIdentifier="Xcode.DebuggerFoundation.Debugger.LLDB" selectedLauncherIdentifier="Xcode.IDEFoundation.Launcher.LLDB" shouldUseLaunchSchemeArgsEnv="YES"><Testables><TestableReference skipped="NO">{test_ref}</TestableReference></Testables></TestAction>
+<TestAction buildConfiguration="Debug" selectedDebuggerIdentifier="Xcode.DebuggerFoundation.Debugger.LLDB" selectedLauncherIdentifier="Xcode.IDEFoundation.Launcher.LLDB" shouldUseLaunchSchemeArgsEnv="YES"><Testables><TestableReference skipped="NO">{test_ref}</TestableReference><TestableReference skipped="NO">{ui_ref}</TestableReference></Testables></TestAction>
 <LaunchAction buildConfiguration="Debug" selectedDebuggerIdentifier="Xcode.DebuggerFoundation.Debugger.LLDB" selectedLauncherIdentifier="Xcode.IDEFoundation.Launcher.LLDB" launchStyle="0" useCustomWorkingDirectory="NO" ignoresPersistentStateOnLaunch="NO" debugDocumentVersioning="YES" debugServiceExtension="internal" allowLocationSimulation="YES"><BuildableProductRunnable runnableDebuggingMode="0">{ref}</BuildableProductRunnable></LaunchAction>
 <ProfileAction buildConfiguration="Release" shouldUseLaunchSchemeArgsEnv="YES" savedToolIdentifier="" useCustomWorkingDirectory="NO" debugDocumentVersioning="YES"><BuildableProductRunnable runnableDebuggingMode="0">{ref}</BuildableProductRunnable></ProfileAction>
 <AnalyzeAction buildConfiguration="Debug"/><ArchiveAction buildConfiguration="Release" revealArchiveInOrganizer="YES"/>

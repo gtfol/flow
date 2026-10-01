@@ -6,8 +6,12 @@ struct SetupView: View {
     @State private var mode: BreathingMode = .natural
     @State private var showingSafety = false
     @State private var startAfterSafety = false
-    @State private var coordinator: SessionCoordinator?
-    @State private var showingPlayer = false
+    @State private var playerSession: PlayerSession?
+
+    private struct PlayerSession: Identifiable {
+        let coordinator: SessionCoordinator
+        var id: UUID { coordinator.engine.runID }
+    }
 
     var body: some View {
         ScrollView {
@@ -31,7 +35,7 @@ struct SetupView: View {
                                 VStack(alignment: .leading, spacing: 6) {
                                     Text(option.title).foregroundStyle(FlowStyle.ink)
                                     Text(option == .natural ? "no timing to follow. breathe as you are."
-                                         : "an optional visual cue: 4 seconds in, 4 out. no holds, no target to achieve.")
+                                         : "an optional visual cue: 4 seconds in, 4 out. no holds. follow while it feels comfortable.")
                                         .font(.subheadline).foregroundStyle(FlowStyle.muted)
                                 }.fixedSize(horizontal: false, vertical: true)
                                 Spacer(minLength: 0)
@@ -63,21 +67,22 @@ struct SetupView: View {
                 .background(FlowStyle.canvas)
         }
         .flowScreen()
-        .sheet(isPresented: $showingSafety) {
+        .sheet(isPresented: $showingSafety, onDismiss: safetyDismissed) {
             SafetyView {
                 store.preferences.hasReadSafety = true
                 showingSafety = false
             }
         }
-        .onChange(of: showingSafety) { _, visible in
-            if !visible, startAfterSafety, store.preferences.hasReadSafety {
-                startAfterSafety = false
-                startPlayer()
-            }
+        .fullScreenCover(item: $playerSession) { session in
+            PlayerView(coordinator: session.coordinator)
         }
-        .fullScreenCover(isPresented: $showingPlayer) {
-            if let coordinator { PlayerView(coordinator: coordinator) }
-        }
+    }
+
+    private func safetyDismissed() {
+        let shouldStart = startAfterSafety && store.preferences.hasReadSafety
+        startAfterSafety = false
+        // Present only after the safety sheet has finished dismissing.
+        if shouldStart { startPlayer() }
     }
 
     private func startPlayer() {
@@ -87,8 +92,8 @@ struct SetupView: View {
             guard UIApplication.shared.applicationState == .active else { return }
             UIImpactFeedbackGenerator(style: .soft).impactOccurred(intensity: 0.35)
         }
-        coordinator = value
-        showingPlayer = true
+        // The same value supplies the player and drives its presentation.
+        playerSession = PlayerSession(coordinator: value)
     }
 }
 

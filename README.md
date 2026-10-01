@@ -79,6 +79,7 @@ History deletion leaves preferences and bundled definitions alone. There is no a
 - `Flow/Resources`: validated session JSON, WAVs, icon, privacy manifest.
 - `FlowTests`: fake-clock and fake-audio regression tests.
 - `FlowNativeTests`: iPhone-hosted audio integration and native rendering checks.
+- `FlowUITests`: actual session navigation, first and repeat starts, safety acknowledgement, and natural/paced playback controls.
 - `scripts`: reproducible audio/icon synthesis and optional project regeneration.
 
 Definitions reject unknown fields, unsupported phases, holds, nonpositive or nonfinite durations, durations over five minutes, and any phase pair other than the approved 4/4 inhale/exhale. Content revisions are explicit. There is no import UI or custom protocol editor. Future owned narration can implement the `SessionAudio` introduction seam without changing the clock or history logic.

@@ -61,6 +61,7 @@ struct PlayerView: View {
                         Text(timeText(engine.remaining, roundUp: true))
                             .font(.system(.title, design: .rounded).monospacedDigit())
                             .accessibilityLabel("\(Int(ceil(engine.remaining))) seconds remaining")
+                            .accessibilityIdentifier("session-remaining")
                         Text("remaining · \(timeText(engine.elapsed)) active")
                             .font(.caption).foregroundStyle(FlowStyle.muted).monospacedDigit()
                             .accessibilityLabel("\(Int(engine.elapsed)) seconds active")

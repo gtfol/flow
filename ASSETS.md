@@ -9,9 +9,9 @@ All bundled experience content was produced specifically for flow. No music, rec
 | `exhale.wav` | Original 330 Hz / 495 Hz tone with smooth attack and decay; 0.8 seconds. | Same script |
 | Session card artwork | Original SwiftUI gradients and Bézier line studies in `FlowStyle.swift`. Native vector rendering, no bitmap source. | Build the app |
 | Player visual | Original concentric circles and radial gradients in SwiftUI. Natural mode is stationary. | Build the app |
-| App icon | Original lowercase f and concentric rings, rendered with AppKit/Core Graphics at 1024 × 1024. | `swift scripts/make_icon.swift Flow/Resources/Assets.xcassets/AppIcon.appiconset` |
+| App icon | Five original concentric sage rings, an open center, and a dark radial gradient; rendered with AppKit/Core Graphics at 1024 × 1024. | `swift scripts/make_icon.swift Flow/Resources/Assets.xcassets/AppIcon.appiconset` |
 | Typography and control glyphs | System SwiftUI fonts and Apple SF Symbols, rendered at runtime; no third-party font files. | Provided by iOS |
-| Guidance and safety text | Original copy supplied in the user brief, preserved verbatim. | `Guidance` in `SessionDefinition.swift` |
+| Guidance and safety text | Original copy supplied in the user brief, with the introduction revised for clarity. Safety guidance is preserved verbatim. | `Guidance` in `SessionDefinition.swift` |
 | Session definitions | Original names and descriptions from the user brief; content revision 1. | Bundled `sessions.json` |
 
 `Flow/Resources/audio-metrics.json` records exact SHA-256 hashes, levels, durations, and sample rate. The generator has no dependencies, random seed, network requests, or paid service. Exact byte identity assumes the same Python/libm floating-point implementation; PCM remains functionally equivalent on other supported systems.

@@ -10,18 +10,23 @@ NSGraphicsContext.saveGraphicsState()
 NSGraphicsContext.current = NSGraphicsContext(cgContext: context, flipped: false)
 NSColor(srgbRed: 0.035, green: 0.045, blue: 0.065, alpha: 1).setFill()
 NSRect(origin: .zero, size: size).fill()
-for index in 0..<6 {
-    let inset = CGFloat(120 + index * 47)
+let glow = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(), colors: [
+    CGColor(red: 0.13, green: 0.20, blue: 0.19, alpha: 1),
+    CGColor(red: 0.035, green: 0.045, blue: 0.065, alpha: 1)
+] as CFArray, locations: [0, 1])!
+context.drawRadialGradient(glow, startCenter: CGPoint(x: 512, y: 512), startRadius: 0,
+                           endCenter: CGPoint(x: 512, y: 512), endRadius: 560,
+                           options: .drawsAfterEndLocation)
+
+// Broad, evenly spaced rings remain distinct at home-screen sizes.
+// The open center is the mark: a little space, with no letterform.
+for index in 0..<5 {
+    let inset = CGFloat(158 + index * 62)
     let oval = NSBezierPath(ovalIn: NSRect(x: inset, y: inset, width: 1024 - 2 * inset, height: 1024 - 2 * inset))
-    NSColor(srgbRed: 0.77, green: 0.89, blue: 0.81, alpha: 0.16 + Double(index) * 0.075).setStroke()
-    oval.lineWidth = 2
+    NSColor(srgbRed: 0.77, green: 0.89, blue: 0.81, alpha: 0.30 + Double(index) * 0.16).setStroke()
+    oval.lineWidth = 14
     oval.stroke()
 }
-let text = "f" as NSString
-let font = NSFont(name: "NewYork-Regular", size: 390) ?? NSFont.systemFont(ofSize: 390, weight: .ultraLight)
-let attributes: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: NSColor(srgbRed: 0.77, green: 0.89, blue: 0.81, alpha: 1)]
-let textSize = text.size(withAttributes: attributes)
-text.draw(at: NSPoint(x: (1024 - textSize.width) / 2, y: (1024 - textSize.height) / 2 + 16), withAttributes: attributes)
 NSGraphicsContext.restoreGraphicsState()
 let bitmap = NSBitmapImageRep(cgImage: context.makeImage()!)
 try bitmap.representation(using: .png, properties: [:])!.write(to: destination.appendingPathComponent("AppIcon.png"))
