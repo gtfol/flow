@@ -2,7 +2,7 @@
 
 Flow follows the gtfol/vitals native iPhone repository setup. The shared Xcode scheme is **Flow**, signing is automatic for **gtfol, LLC** (`J59ZSG67SJ`), and the bundle identifier is `dev.gtfol.flow`.
 
-The first beta is version **0.1.0**, build **1**. The device display name remains **flow**. A subtitle can be chosen independently of the bundle identifier.
+The first beta is version **0.1.0**, build **1**. The App Store listing name is **flow: your inner space**. The bundle name, home-screen display name, and interface remain **flow**.
 
 ## Checks
 

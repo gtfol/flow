@@ -1,4 +1,4 @@
-# flow
+# flow: your inner space
 
 [![iPhone build and tests](https://github.com/gtfol/flow/actions/workflows/ios.yml/badge.svg)](https://github.com/gtfol/flow/actions/workflows/ios.yml)
 
@@ -46,7 +46,7 @@ Settings provide separate ambient/tone volume controls, independent sound and sp
 
 ## Assumptions and design direction
 
-- **Name:** flow, as requested. The home-screen name is flow. App Store Connect uses bundle identifier `dev.gtfol.flow`; no trademark clearance is implied.
+- **Name:** flow, as requested. The App Store listing is **flow: your inner space**. The home-screen name and interface use **flow**. App Store Connect uses bundle identifier `dev.gtfol.flow`; no trademark clearance is implied.
 - **Platform:** native iPhone, SwiftUI, iOS 17+. No web app, Android app, or backend is included.
 - **Reference:** Othership's public [app page](https://www.othership.us/app) and [App Store screenshots](https://apps.apple.com/us/app/othership-guided-breathwork/id1590348936) informed the immersive, sound-led approach, atmospheric session selection, and focused player. Flow uses original vector light studies, a dark ink / sage palette, and system serif and sans-serif typography. No recordings, subscription content, artwork, claims, names, or distinctive layouts were copied.
 - **gtfol reference:** inspected the local capsule iPhone project from gtfol/capsule. Its separated core/presentation structure, lowercase interface, native controls, and generous spacing informed this project. No capsule application code, font files, or account integration were copied.
