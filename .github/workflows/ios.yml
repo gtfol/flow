@@ -18,7 +18,7 @@ jobs:
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@v7
       - name: Core unit tests on macOS
         run: swift test --scratch-path "$RUNNER_TEMP/FlowCore"
   ios:
@@ -27,32 +27,30 @@ jobs:
     timeout-minutes: 30
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
-      FLOW_DERIVED_DATA: ${{ runner.temp }}/FlowDerivedData
-      FLOW_RESULT_BUNDLE: ${{ runner.temp }}/FlowTests.xcresult
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@v7
       - name: Verify generated Xcode project
         run: |
           python3 scripts/generate_project.py
           git diff --exit-code -- Flow.xcodeproj
       - name: Build simulator and device, test on an iPhone simulator
-        run: scripts/test-ios.sh
+        run: FLOW_DERIVED_DATA="$RUNNER_TEMP/FlowDerivedData" FLOW_RESULT_BUNDLE="$RUNNER_TEMP/FlowTests.xcresult" scripts/test-ios.sh
       - name: Export native screen captures
         if: always()
         run: |
-          if [ -d "$FLOW_RESULT_BUNDLE" ]; then
-            xcrun xcresulttool export attachments --path "$FLOW_RESULT_BUNDLE" --output-path "$RUNNER_TEMP/FlowScreenshots"
+          if [ -d "$RUNNER_TEMP/FlowTests.xcresult" ]; then
+            xcrun xcresulttool export attachments --path "$RUNNER_TEMP/FlowTests.xcresult" --output-path "$RUNNER_TEMP/FlowScreenshots"
           fi
       - name: Screenshots
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@v7
         with:
           name: screenshots
           path: ${{ runner.temp }}/FlowScreenshots
           if-no-files-found: ignore
       - name: Test results
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@v7
         with:
           name: test-results
           path: ${{ runner.temp }}/FlowTests.xcresult
