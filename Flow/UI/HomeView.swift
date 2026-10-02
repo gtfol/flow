@@ -15,7 +15,7 @@ struct HomeView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 28) {
+                VStack(alignment: .leading, spacing: 20) {
                     HStack {
                         Text("flow").font(.system(.largeTitle, design: .serif)).tracking(-1.8)
                         Spacer()
@@ -31,14 +31,14 @@ struct HomeView: View {
                     Button { showingSetup = true } label: {
                         VStack(spacing: 12) {
                             if !typeSize.isAccessibilitySize {
-                                BreathingVisual(phase: nil, running: true, reduceMotion: true).frame(height: 175)
+                                BreathingVisual(phase: nil, running: true, reduceMotion: true).frame(height: 120)
                             }
                             Text("\(store.preferences.minutes) min")
                                 .font(.system(size: typeSize.isAccessibilitySize ? 42 : 56, weight: .light, design: .serif))
                             Text(store.preferences.practice.title).font(.title3)
                             Text(store.preferences.practice.detail).font(.subheadline).foregroundStyle(FlowStyle.muted)
                                 .multilineTextAlignment(.center)
-                        }.padding(24).frame(maxWidth: .infinity)
+                        }.padding(20).frame(maxWidth: .infinity)
                             .background(FlowStyle.surface.opacity(0.65), in: RoundedRectangle(cornerRadius: 28))
                             .overlay(RoundedRectangle(cornerRadius: 28).stroke(FlowStyle.line, lineWidth: 0.5))
                     }.buttonStyle(.plain).accessibilityIdentifier("configure-session")

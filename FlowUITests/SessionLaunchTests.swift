@@ -19,6 +19,8 @@ final class SessionLaunchTests: XCTestCase {
         app.buttons["player-primary"].tap()
         XCTAssertEqual(app.staticTexts["current-cue"].label, "paused")
         app.buttons["player-primary"].tap()
+        let resumed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == 'pause'"), object: app.buttons["player-primary"])
+        XCTAssertEqual(XCTWaiter.wait(for: [resumed], timeout: 4), .completed)
         capture("natural-session-running")
         stopAndReturn()
         begin(acknowledge: false)
@@ -96,8 +98,12 @@ final class SessionLaunchTests: XCTestCase {
         XCTAssertTrue(app.buttons["stop-session"].isHittable)
     }
     private func stopAndReturn() {
-        if !app.buttons["stop-session"].exists { app.buttons["reveal-controls"].tap() }
-        app.buttons["stop-session"].tap()
+        if app.buttons["reveal-controls"].exists { app.buttons["reveal-controls"].tap() }
+        let end = app.buttons["stop-session"]
+        let hittable = XCTNSPredicateExpectation(predicate: NSPredicate(format: "hittable == true"), object: end)
+        XCTAssertEqual(XCTWaiter.wait(for: [hittable], timeout: 4), .completed)
+        XCTAssertGreaterThan(end.frame.minY, app.buttons["player-primary"].frame.maxY, "End must have its own tap target below pause/resume")
+        end.tap()
         XCTAssertTrue(app.staticTexts["finish-title"].waitForExistence(timeout: 5))
         XCTAssertEqual(app.staticTexts["finish-title"].label, "session stopped")
         app.buttons["finish-done"].tap()

@@ -47,9 +47,11 @@ struct PlayerView: View {
                 VStack(spacing: 22) {
                     Text(engine.definition.title).font(.subheadline).foregroundStyle(FlowStyle.muted)
                         .opacity(textVisible ? 1 : 0).accessibilityHidden(!textVisible)
+                        .animation(motionReduced ? nil : .easeInOut(duration: 2), value: textVisible)
                     Text(cueTitle).font(.system(.largeTitle, design: .serif))
                         .multilineTextAlignment(.center).accessibilityIdentifier("current-cue")
                         .opacity(textVisible ? 1 : 0).accessibilityHidden(!textVisible)
+                        .animation(motionReduced ? nil : .easeInOut(duration: 2), value: textVisible)
                     if engine.state == .preparing {
                         ProgressView().tint(FlowStyle.accent).padding(40)
                         Text("making a little space…").foregroundStyle(FlowStyle.muted)
@@ -63,6 +65,7 @@ struct PlayerView: View {
                             .foregroundStyle(FlowStyle.muted).accessibilityIdentifier("session-remaining")
                             .accessibilityLabel("\(Int(ceil(engine.remaining))) seconds remaining")
                             .opacity(timerVisible ? 1 : 0).accessibilityHidden(!timerVisible)
+                            .animation(motionReduced ? nil : .easeInOut(duration: 2), value: timerVisible)
                         if let caption, textVisible {
                             Text(caption).font(.body).lineSpacing(5).multilineTextAlignment(.center)
                                 .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("guidance-caption")
@@ -87,32 +90,37 @@ struct PlayerView: View {
             VStack(spacing: 8) {
                 if engine.state != .preparing {
                     if engine.mode == .paced && engine.segment.stage == .settle {
-                        Button("return to natural breathing") { coordinator.useNaturalBreathing(); reveal(); updateAwake() }
-                            .font(.subheadline).frame(minHeight: 44).accessibilityIdentifier("return-natural")
+                        Button { coordinator.useNaturalBreathing(); reveal(); updateAwake() } label: {
+                            Text("return to natural breathing").font(.subheadline)
+                                .frame(maxWidth: .infinity, minHeight: 44).contentShape(Rectangle())
+                        }.buttonStyle(.plain).accessibilityIdentifier("return-natural")
                     }
-                    Button(coordinator.muted ? "unmute audio" : "mute audio") { coordinator.setMuted(!coordinator.muted); reveal() }
-                        .font(.subheadline).frame(minHeight: 44).accessibilityIdentifier("player-mute")
+                    Button { coordinator.setMuted(!coordinator.muted); reveal() } label: {
+                        Text(coordinator.muted ? "unmute audio" : "mute audio").font(.subheadline)
+                            .frame(maxWidth: .infinity, minHeight: 44).contentShape(Rectangle())
+                    }.buttonStyle(.plain).accessibilityIdentifier("player-mute")
                     Button(engine.isPaused ? "resume" : "pause") {
                         if engine.isPaused { coordinator.resume() } else { coordinator.pause() }
                         reveal()
                     }.buttonStyle(FlowPrimaryButton()).accessibilityIdentifier("player-primary")
                 }
-                Button("end session") { coordinator.stop() }
-                    .frame(maxWidth: .infinity, minHeight: 48).accessibilityIdentifier("stop-session")
+                Button { coordinator.stop() } label: {
+                    Text("end session").frame(maxWidth: .infinity, minHeight: 48).contentShape(Rectangle())
+                }.buttonStyle(.plain).accessibilityIdentifier("stop-session")
             }.padding(.horizontal, 24).padding(.top, 12).padding(.bottom, 4)
                 .background(FlowStyle.canvas).opacity(controlsVisible ? 1 : 0)
                 .allowsHitTesting(controlsVisible).accessibilityHidden(!controlsVisible)
+                .animation(motionReduced ? nil : .easeInOut(duration: 2), value: controlsVisible)
         }
         .overlay {
-            if !controlsVisible {
-                Color.clear.contentShape(Rectangle()).ignoresSafeArea().onTapGesture { reveal() }
-                    .accessibilityLabel("show session controls").accessibilityAddTraits(.isButton)
-                    .accessibilityIdentifier("reveal-controls")
-            }
+            // Keep one surface and disable input immediately when controls return.
+            // A removed, fading overlay can otherwise intercept the next button tap.
+            Color.clear.contentShape(Rectangle()).ignoresSafeArea().onTapGesture { reveal() }
+                .allowsHitTesting(!controlsVisible).accessibilityHidden(controlsVisible)
+                .accessibilityLabel("show session controls").accessibilityAddTraits(.isButton)
+                .accessibilityIdentifier("reveal-controls")
+                .transaction { $0.animation = nil }
         }
-        .animation(motionReduced ? nil : .easeInOut(duration: 2), value: controlsVisible)
-        .animation(motionReduced ? nil : .easeInOut(duration: 2), value: textVisible)
-        .animation(motionReduced ? nil : .easeInOut(duration: 2), value: timerVisible)
     }
     private var caption: String? {
         if engine.isPaused { return "take all the time you need." }

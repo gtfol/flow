@@ -12,11 +12,17 @@ Current iteration: **0.2.0 (4)**, October 1, 2026. Xcode 26.6 (17F113), Swift 6.
 - **Nine Brian recordings decoded and measured.** Durations, hashes, sample rates, channels, and levels are saved in `Flow/Resources/narration-metrics.json`. No clipped decoded source samples were found. The introduction matches the earlier Brian audition byte-for-byte.
 - **Test targets compile.** The expanded iPhone suite includes native renderer/playback checks, actual SwiftUI screen captures at normal and largest accessibility text, and production UI navigation.
 
+## First GitHub iPhone run
+
+[Run 36946797452](https://github.com/gtfol/flow/actions/runs/36946797452) passed all **25 iPhone-hosted tests**: 18 core, six native audio, and one test rendering 23 screen variants. The actual audio background array, every narration schedule, silence/bell placement, cancellation, playback/pause/resume, repeated cleanup, and interruption/media-reset handling passed.
+
+Three of four navigation tests failed. The captures and accessibility traces exposed overlapping player tap regions and the animated reveal layer intercepting subsequent touches. Player text buttons now use explicit non-overlapping label bounds with plain styling, and the reveal surface disables hit testing immediately. The home hero is smaller so guidance fits above Begin at standard text size. A new check verifies End sits below the pause/resume target. The repaired navigation run is pending; this is not yet a release-ready result.
+
 ## Pending for this iteration
 
 The first local iPhone test run could not begin execution while the Mac was locked and was interrupted; it is not a passing result. A signed archive reached code signing but failed with `errSecInternalComponent` while the Mac was locked. Unlocking is needed for the remaining local UI checks and Xcode Organizer upload. Build 4 has not yet been uploaded.
 
-Remaining automated checks: iPhone-hosted native audio/lifecycle tests, screen rendering and visual review, and UI navigation for first/repeated launch, fade/reveal, background return, paced-to-natural override, and standalone safety. Results will be updated when those checks finish. The existing screenshots in `docs/screenshots` are from the prior release until replaced.
+Remaining automated checks: re-run after the interaction fixes, review the final screen captures, and confirm UI navigation for first/repeated launch, fade/reveal, background return, paced-to-natural override, and standalone safety. Results will be updated when those checks finish. The existing screenshots in `docs/screenshots` are from the prior release until replaced.
 
 ## Verification boundaries
 
