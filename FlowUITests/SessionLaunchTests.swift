@@ -30,11 +30,11 @@ final class SessionLaunchTests: XCTestCase {
         configure(practice: "silence")
         begin(acknowledge: true)
         XCTAssertEqual(app.staticTexts["current-cue"].label, "your space.")
-        let faded = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: app.buttons["player-primary"])
-        XCTAssertEqual(XCTWaiter.wait(for: [faded], timeout: 22), .completed)
+        waitForControlsToFade()
+        capture("pure-silence-controls-faded")
         // A tap near the bottom must restore the controls too.
         app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.90)).tap()
-        XCTAssertTrue(app.buttons["player-primary"].waitForExistence(timeout: 4))
+        waitForHittable(app.buttons["player-primary"])
         let before = app.staticTexts["session-remaining"].label
         XCUIDevice.shared.press(.home)
         // Real foreground transitions exercise the app lifecycle; hardware lock/audio
@@ -55,13 +55,12 @@ final class SessionLaunchTests: XCTestCase {
         app.buttons["gentle pace · 5 in / 5 out"].tap()
         app.buttons["setup-done"].tap()
         begin(acknowledge: true)
-        let faded = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: app.buttons["player-primary"])
-        XCTAssertEqual(XCTWaiter.wait(for: [faded], timeout: 22), .completed)
+        waitForControlsToFade()
         // Pacing is intentionally absent from Arrive. Wait for the real Settle phase.
         sleep(23)
         app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
         let natural = app.buttons["return-natural"]
-        XCTAssertTrue(natural.waitForExistence(timeout: 6))
+        waitForHittable(natural)
         natural.tap()
         XCTAssertEqual(app.staticTexts["current-cue"].label, "find your rhythm.")
         XCTAssertFalse(natural.exists)
@@ -108,6 +107,18 @@ final class SessionLaunchTests: XCTestCase {
         XCTAssertEqual(app.staticTexts["finish-title"].label, "session stopped")
         app.buttons["finish-done"].tap()
         XCTAssertTrue(app.buttons["start-session"].waitForExistence(timeout: 5))
+    }
+    private func waitForControlsToFade() {
+        // SwiftUI may retain an element in the accessibility snapshot while its
+        // opacity is zero. The behavioral requirement is that hidden controls
+        // cannot consume a reveal tap.
+        let faded = XCTNSPredicateExpectation(predicate: NSPredicate(format: "hittable == false"), object: app.buttons["player-primary"])
+        XCTAssertEqual(XCTWaiter.wait(for: [faded], timeout: 22), .completed)
+        XCTAssertFalse(app.buttons["stop-session"].isHittable)
+    }
+    private func waitForHittable(_ element: XCUIElement) {
+        let ready = XCTNSPredicateExpectation(predicate: NSPredicate(format: "hittable == true"), object: element)
+        XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 6), .completed)
     }
     private func capture(_ name: String) {
         let attachment = XCTAttachment(screenshot: app.screenshot())
