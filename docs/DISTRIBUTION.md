@@ -28,7 +28,7 @@ Validation: 19 macOS core tests, 27 iPhone-hosted tests, and 3 session navigatio
 
 Version **0.2.0 (4)** adds Stillness, Open Awareness, Pure Silence, six duration presets, three guidance levels, staged practices, fading controls, optional five-second pacing/haptics, finite offline audio with bells, and Brian narration. App Store pricing and naming stay as configured.
 
-All automated checks passed: 18 macOS core tests, 25 iPhone-hosted tests, and four navigation tests in [run 36953418240](https://github.com/gtfol/flow/actions/runs/36953418240). The signed archive passed strict code-signature verification, with the expected version, bundle name, team, and audio background mode. Xcode Organizer confirmed **flow 0.2.0 (4) uploaded** on October 1, 2026, at 8:12 PM Pacific. Apple processing and Internal tester availability are awaiting browser verification. See [verification](VERIFICATION.md) for the current boundary.
+All automated checks passed: 18 macOS core tests, 25 iPhone-hosted tests, and four navigation tests in [run 36953418240](https://github.com/gtfol/flow/actions/runs/36953418240). The signed archive passed strict code-signature verification, with the expected version, bundle name, team, and audio background mode. Xcode Organizer confirmed **flow 0.2.0 (4) uploaded** on October 1, 2026, at 8:12 PM Pacific. App Store Connect subsequently confirmed processing was complete and build 4 was **Testing** in the **Internal** group. See [verification](VERIFICATION.md) for remaining physical-device checks.
 
 ## Checks
 

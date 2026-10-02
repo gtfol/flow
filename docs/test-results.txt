@@ -3,7 +3,7 @@ Source: 1853af34a109e984adc4d4d28d11c4e75f61a5b2
 Run: https://github.com/gtfol/flow/actions/runs/36953418240
 Xcode 26.6, iPhone 17 Pro, iOS 26.5
 18 macOS core tests, 25 iPhone-hosted tests, and 4 UI navigation tests passed.
-Signed archive and strict code-signature verification passed. Xcode Organizer confirmed 0.2.0 (4) uploaded on October 1, 2026 at 8:12 PM Pacific; TestFlight processing verification is pending.
+Signed archive and strict code-signature verification passed. Xcode Organizer confirmed 0.2.0 (4) uploaded on October 1, 2026 at 8:12 PM Pacific. App Store Connect subsequently confirmed Testing in the Internal group.
 
 2026-10-02T02:04:01.1571960Z Test Case '-[FlowTests.FlowCoreTests testAllDurationsCompleteOnceAndBellTailCanFinish]' passed (0.024 seconds).
 2026-10-02T02:04:01.2258220Z Test Case '-[FlowTests.FlowCoreTests testAudioFailureDoesNotAdvanceSessionAndCanRetry]' passed (0.005 seconds).

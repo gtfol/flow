@@ -31,7 +31,7 @@ Current [screen captures](screenshots/README.md) replace the prior-release image
 
 The first local iPhone test run could not begin execution while the Mac was locked and was interrupted; it is not a passing result. Initial archive attempts failed at code signing with `errSecInternalComponent`. After the owner unlocked the login keychain, the archive succeeded and strict code-signature verification passed. The archive contains **0.2.0 (4)**, bundle `dev.gtfol.flow`, team `J59ZSG67SJ`, display name **flow**, and the audio background mode.
 
-Xcode Organizer confirmed **flow 0.2.0 (4) uploaded** on October 1, 2026, at 8:12 PM Pacific. App Store Connect browser reauthentication is needed to verify processing and Internal tester availability. No production App Store release has been submitted.
+Xcode Organizer confirmed **flow 0.2.0 (4) uploaded** on October 1, 2026, at 8:12 PM Pacific. The Codex browser verified build 4 as **Testing** in App Store Connect's **Internal** group after processing. No production App Store release has been submitted.
 
 ## Verification boundaries
 
