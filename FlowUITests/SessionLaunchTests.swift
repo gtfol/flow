@@ -30,9 +30,9 @@ final class SessionLaunchTests: XCTestCase {
         configure(practice: "silence")
         begin(acknowledge: true)
         XCTAssertEqual(app.staticTexts["current-cue"].label, "your space.")
-        let reveal = app.buttons["reveal-controls"]
-        XCTAssertTrue(reveal.waitForExistence(timeout: 20))
-        // Tap the lower area too: the reveal surface covers the whole player.
+        let faded = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: app.buttons["player-primary"])
+        XCTAssertEqual(XCTWaiter.wait(for: [faded], timeout: 22), .completed)
+        // A tap near the bottom must restore the controls too.
         app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.90)).tap()
         XCTAssertTrue(app.buttons["player-primary"].waitForExistence(timeout: 4))
         let before = app.staticTexts["session-remaining"].label
@@ -55,11 +55,11 @@ final class SessionLaunchTests: XCTestCase {
         app.buttons["gentle pace · 5 in / 5 out"].tap()
         app.buttons["setup-done"].tap()
         begin(acknowledge: true)
-        let reveal = app.buttons["reveal-controls"]
-        XCTAssertTrue(reveal.waitForExistence(timeout: 20))
+        let faded = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: app.buttons["player-primary"])
+        XCTAssertEqual(XCTWaiter.wait(for: [faded], timeout: 22), .completed)
         // Pacing is intentionally absent from Arrive. Wait for the real Settle phase.
         sleep(23)
-        reveal.tap()
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
         let natural = app.buttons["return-natural"]
         XCTAssertTrue(natural.waitForExistence(timeout: 6))
         natural.tap()
@@ -98,7 +98,7 @@ final class SessionLaunchTests: XCTestCase {
         XCTAssertTrue(app.buttons["stop-session"].isHittable)
     }
     private func stopAndReturn() {
-        if app.buttons["reveal-controls"].exists { app.buttons["reveal-controls"].tap() }
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
         let end = app.buttons["stop-session"]
         let hittable = XCTNSPredicateExpectation(predicate: NSPredicate(format: "hittable == true"), object: end)
         XCTAssertEqual(XCTWaiter.wait(for: [hittable], timeout: 4), .completed)

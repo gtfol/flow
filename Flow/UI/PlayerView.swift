@@ -93,34 +93,29 @@ struct PlayerView: View {
                         Button { coordinator.useNaturalBreathing(); reveal(); updateAwake() } label: {
                             Text("return to natural breathing").font(.subheadline)
                                 .frame(maxWidth: .infinity, minHeight: 44).contentShape(Rectangle())
-                        }.buttonStyle(.plain).accessibilityIdentifier("return-natural")
+                        }.buttonStyle(.plain).accessibilityIdentifier("return-natural").accessibilityHidden(!controlsVisible)
                     }
                     Button { coordinator.setMuted(!coordinator.muted); reveal() } label: {
                         Text(coordinator.muted ? "unmute audio" : "mute audio").font(.subheadline)
                             .frame(maxWidth: .infinity, minHeight: 44).contentShape(Rectangle())
-                    }.buttonStyle(.plain).accessibilityIdentifier("player-mute")
+                    }.buttonStyle(.plain).accessibilityIdentifier("player-mute").accessibilityHidden(!controlsVisible)
                     Button(engine.isPaused ? "resume" : "pause") {
                         if engine.isPaused { coordinator.resume() } else { coordinator.pause() }
                         reveal()
-                    }.buttonStyle(FlowPrimaryButton()).accessibilityIdentifier("player-primary")
+                    }.buttonStyle(FlowPrimaryButton()).accessibilityIdentifier("player-primary").accessibilityHidden(!controlsVisible)
                 }
                 Button { coordinator.stop() } label: {
                     Text("end session").frame(maxWidth: .infinity, minHeight: 48).contentShape(Rectangle())
-                }.buttonStyle(.plain).accessibilityIdentifier("stop-session")
+                }.buttonStyle(.plain).accessibilityIdentifier("stop-session").accessibilityHidden(!controlsVisible)
             }.padding(.horizontal, 24).padding(.top, 12).padding(.bottom, 4)
                 .background(FlowStyle.canvas).opacity(controlsVisible ? 1 : 0)
-                .allowsHitTesting(controlsVisible).accessibilityHidden(!controlsVisible)
+                .allowsHitTesting(controlsVisible)
+                .accessibilityElement(children: .contain)
                 .animation(motionReduced ? nil : .easeInOut(duration: 2), value: controlsVisible)
         }
-        .overlay {
-            // Keep one surface and disable input immediately when controls return.
-            // A removed, fading overlay can otherwise intercept the next button tap.
-            Color.clear.contentShape(Rectangle()).ignoresSafeArea().onTapGesture { reveal() }
-                .allowsHitTesting(!controlsVisible).accessibilityHidden(controlsVisible)
-                .accessibilityLabel("show session controls").accessibilityAddTraits(.isButton)
-                .accessibilityIdentifier("reveal-controls")
-                .transaction { $0.animation = nil }
-        }
+        .contentShape(Rectangle())
+        .simultaneousGesture(TapGesture().onEnded { reveal() })
+
     }
     private var caption: String? {
         if engine.isPaused { return "take all the time you need." }
