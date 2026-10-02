@@ -27,9 +27,11 @@ An earlier [run](https://github.com/gtfol/flow/actions/runs/36952051897) had one
 
 Current [screen captures](screenshots/README.md) replace the prior-release images. Home, setup, running/paused player, reduced-motion pacing, open silence, and completion were visually reviewed, including home/setup/paused views at the largest accessibility text size. Long content scrolls while primary controls remain fixed. Full test output is summarized in `test-results.txt`; GitHub retains the complete result bundle and attachments.
 
-## Upload pending
+## Signed archive and upload
 
-The first local iPhone test run could not begin execution while the Mac was locked and was interrupted; it is not a passing result. A signed archive reached code signing but failed with `errSecInternalComponent` while the Mac was locked. Unlocking is needed for signed archiving and the Xcode Organizer upload. Build 4 has not yet been uploaded. The last distributed TestFlight build remains **0.1.0 (3)**.
+The first local iPhone test run could not begin execution while the Mac was locked and was interrupted; it is not a passing result. Initial archive attempts failed at code signing with `errSecInternalComponent`. After the owner unlocked the login keychain, the archive succeeded and strict code-signature verification passed. The archive contains **0.2.0 (4)**, bundle `dev.gtfol.flow`, team `J59ZSG67SJ`, display name **flow**, and the audio background mode.
+
+Xcode Organizer confirmed **flow 0.2.0 (4) uploaded** on October 1, 2026, at 8:12 PM Pacific. App Store Connect browser reauthentication is needed to verify processing and Internal tester availability. No production App Store release has been submitted.
 
 ## Verification boundaries
 
