@@ -28,7 +28,7 @@ Validation: 19 macOS core tests, 27 iPhone-hosted tests, and 3 session navigatio
 
 Version **0.2.0 (4)** adds Stillness, Open Awareness, Pure Silence, six duration presets, three guidance levels, staged practices, fading controls, optional five-second pacing/haptics, finite offline audio with bells, and Brian narration. App Store pricing and naming stay as configured.
 
-Core and audio-rendering checks passed; the iPhone test suite and signed upload remain pending. The Mac was locked during the local UI test/archiving attempt. The unsigned app builds, and its processed Info.plist includes the audio background mode. This build is **not yet on TestFlight**. See [verification](VERIFICATION.md) for the current boundary.
+Core and audio-rendering checks passed, as did 25 iPhone-hosted tests and three navigation tests. A repeat-session navigation retry and the signed upload remain pending. The Mac was locked during the local UI test/archiving attempt. The unsigned app builds, and its processed Info.plist includes the audio background mode. This build is **not yet on TestFlight**. See [verification](VERIFICATION.md) for the current boundary.
 
 ## Checks
 

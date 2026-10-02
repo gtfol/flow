@@ -1,41 +1,60 @@
-[
-  {
-    "file": "ambient.wav",
-    "clipped_samples": 0,
-    "first_frame": [
-      0,
-      0
+{
+  "version": "0.2.0 (4)",
+  "scope": "Bundled ambient and bell PCM recordings; narration measurements are in Flow/Resources/narration-metrics.json. Digital checks do not establish subjective listening quality.",
+  "wav_checks": [
+    {
+      "file": "ambient.wav",
+      "frames": 1440000,
+      "sample_rate": 24000,
+      "channels": 2,
+      "seconds": 60.0,
+      "clipped_samples": 0,
+      "first_frame": [
+        0,
+        0
+      ],
+      "last_frame": [
+        0,
+        0
+      ],
+      "max_sample_step": 0.0023193359375,
+      "sha256": "e319d8d0b29552b0ef70f7c94c1257533fedc5ae2722fbb57dd88b07639aa621"
+    },
+    {
+      "file": "bell.wav",
+      "frames": 192000,
+      "sample_rate": 24000,
+      "channels": 2,
+      "seconds": 8.0,
+      "clipped_samples": 0,
+      "first_frame": [
+        0,
+        0
+      ],
+      "last_frame": [
+        0,
+        0
+      ],
+      "max_sample_step": 0.037109375,
+      "sha256": "2a3baf141ff2e8e1fe8069742da65aaaaa9d9518130e57e9e0fb355c7893b346"
+    }
+  ],
+  "renderer_validation": {
+    "plans_checked": 108,
+    "no_narration_overlaps": true,
+    "renders_seconds": [
+      120,
+      1800,
+      120
     ],
-    "last_frame": [
-      0,
-      0
+    "render_practices": [
+      "Open Awareness Full/Paced",
+      "Open Awareness Full/Paced",
+      "Pure Silence"
     ],
-    "max_sample_step": 0.0023193359375
-  },
-  {
-    "file": "exhale.wav",
-    "clipped_samples": 0,
-    "first_frame": [
-      0,
-      0
-    ],
-    "last_frame": [
-      0,
-      0
-    ],
-    "max_sample_step": 0.00341796875
-  },
-  {
-    "file": "inhale.wav",
-    "clipped_samples": 0,
-    "first_frame": [
-      0,
-      0
-    ],
-    "last_frame": [
-      0,
-      0
-    ],
-    "max_sample_step": 0.00457763671875
+    "exact_duration_plus_tail_seconds": 8,
+    "zero_samples_in_silent_sections": true,
+    "bell_starts_at_selected_duration": true,
+    "environment": "macOS AVFoundation, production SessionAudioRenderer"
   }
-]
+}

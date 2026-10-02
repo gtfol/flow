@@ -1,33 +1,45 @@
-flow: iPhone simulator XCTest results
-Xcode 26.6, iPhone 17 Pro, iOS 26.5
-October 1, 2026
+flow 0.2.0 (4): latest completed iPhone checks
+Source: affc868fe017097fe0a9d0451658e134406bfd2b
+Run: https://github.com/gtfol/flow/actions/runs/36952051897
+25 hosted tests passed. 3 of 4 UI tests passed: visual fade/reveal/background, paced-to-natural, and safety.
+Repeat-session navigation failed after a simulator/automation delay. The same production player passed this test in two earlier runs; a retry is pending.
 
-Test Case '-[FlowTests.FlowCoreTests testAllInterruptionsFreezeAndNeverAutoResume]' passed (0.006 seconds).
-Test Case '-[FlowTests.FlowCoreTests testAmbientFailurePausesAndCanRecoverWithSoundDisabled]' passed (0.005 seconds).
-Test Case '-[FlowTests.FlowCoreTests testBothDurationsCompleteOnceAndClampLateUpdates]' passed (0.005 seconds).
-Test Case '-[FlowTests.FlowCoreTests testBundledDefinitionsContainBothDurationsAndRevisions]' passed (0.001 seconds).
-Test Case '-[FlowTests.FlowCoreTests testCancelledObserverCannotCompleteLater]' passed (0.140 seconds).
-Test Case '-[FlowTests.FlowCoreTests testCueFailureStopsAudioAndPausesVisual]' passed (0.002 seconds).
-Test Case '-[FlowTests.FlowCoreTests testDefaultsAndPreferencesSurviveRelaunch]' passed (0.004 seconds).
-Test Case '-[FlowTests.FlowCoreTests testDelayedRefreshDerivesPhaseWithoutDriftOrStaleTones]' passed (0.003 seconds).
-Test Case '-[FlowTests.FlowCoreTests testExactPhaseBoundaries]' passed (0.002 seconds).
-Test Case '-[FlowTests.FlowCoreTests testHistoryRelaunchDeduplicationAndDeletionPreservePreferencesAndContent]' passed (0.004 seconds).
-Test Case '-[FlowTests.FlowCoreTests testIntroductionIsUntimedAndPauseStopsSpeechWithoutReplay]' passed (0.002 seconds).
-Test Case '-[FlowTests.FlowCoreTests testLateCallbacksDoNotRecreateDeletedHistory]' passed (0.003 seconds).
-Test Case '-[FlowTests.FlowCoreTests testMissingOfflineVoiceHasReadableFallbackAndNoTimedProgress]' passed (0.002 seconds).
-Test Case '-[FlowTests.FlowCoreTests testNaturalModeHasNoPhaseCuesAndCanBeSelectedMidSession]' passed (0.002 seconds).
-Test Case '-[FlowTests.FlowCoreTests testPauseFreezesTimeAndResumeRestartsInhaleWithoutDiscardingActiveTime]' passed (0.002 seconds).
-Test Case '-[FlowTests.FlowCoreTests testRejectsHoldsMalformedPhasesAndUnknownFields]' passed (0.002 seconds).
-Test Case '-[FlowTests.FlowCoreTests testRejectsNonpositiveNonfiniteAndExcessiveDurations]' passed (0.001 seconds).
-Test Case '-[FlowTests.FlowCoreTests testRepeatedStartsDoNotStackAndNewRunsHaveUniqueIDs]' passed (0.002 seconds).
-Test Case '-[FlowTests.FlowCoreTests testStopAndCancellationNeverRecordACompletion]' passed (0.002 seconds).
-Test Case '-[FlowTests.NativeAudioTests testBundledAudioDecodesAndHasExpectedDuration]' passed (0.245 seconds).
-Test Case '-[FlowTests.NativeAudioTests testNativeNotificationsPauseWithoutAutomaticResume]' passed (1.269 seconds).
-Test Case '-[FlowTests.NativeAudioTests testNativeSoundStartStopAndRepeat]' passed (0.492 seconds).
-Test Case '-[FlowTests.ScreenRenderingTests testRenderScreensAtNormalAndLargestTextWithReducedMotion]' passed (16.730 seconds).
-	 Executed 23 tests, with 0 failures (0 unexpected) in 18.927 (18.937) seconds
-	 Executed 23 tests, with 0 failures (0 unexpected) in 18.927 (18.940) seconds
-** TEST SUCCEEDED **
-
-Focused follow-up: ScreenRenderingTests passed, including the standard-size Reduce Motion alternative.
-Unsigned Release build for generic iOS: BUILD SUCCEEDED.
+2026-10-02T01:48:29.3072710Z Test Case '-[FlowTests.FlowCoreTests testAllDurationsCompleteOnceAndBellTailCanFinish]' passed (0.025 seconds).
+2026-10-02T01:48:29.4309150Z Test Case '-[FlowTests.FlowCoreTests testAudioFailureDoesNotAdvanceSessionAndCanRetry]' passed (0.010 seconds).
+2026-10-02T01:48:29.4573480Z Test Case '-[FlowTests.FlowCoreTests testBackgroundAudioCompletionRecordsWithoutUIRefresh]' passed (0.006 seconds).
+2026-10-02T01:48:29.4819270Z Test Case '-[FlowTests.FlowCoreTests testDelayedRefreshSkipsStaleHapticsAndDoesNotDrift]' passed (0.003 seconds).
+2026-10-02T01:48:29.5059330Z Test Case '-[FlowTests.FlowCoreTests testEarlyStopAndLateCallbackNeverRecordCompletion]' passed (0.002 seconds).
+2026-10-02T01:48:29.5419910Z Test Case '-[FlowTests.FlowCoreTests testEveryPracticeDurationAndGuidanceHasContiguousValidSegments]' passed (0.003 seconds).
+2026-10-02T01:48:29.6439490Z Test Case '-[FlowTests.FlowCoreTests testHistoryRelaunchDedupAndDeletion]' passed (0.012 seconds).
+2026-10-02T01:48:29.6441590Z Test Case '-[FlowTests.FlowCoreTests testInterruptionsRequireExplicitResume]' passed (0.003 seconds).
+2026-10-02T01:48:29.6443200Z Test Case '-[FlowTests.FlowCoreTests testInvalidDurationsRejected]' passed (0.002 seconds).
+2026-10-02T01:48:29.6444770Z Test Case '-[FlowTests.FlowCoreTests testLegacyPreferencesMigrateWithoutLosingHistoryOrSafety]' passed (0.013 seconds).
+2026-10-02T01:48:29.6446770Z Test Case '-[FlowTests.FlowCoreTests testNaturalOverrideAndMuteAreIndependentOfTimer]' passed (0.018 seconds).
+2026-10-02T01:48:29.6448280Z Test Case '-[FlowTests.FlowCoreTests testPacingOnlyExistsDuringSettleAndStopsAtExpand]' passed (0.004 seconds).
+2026-10-02T01:48:29.6454550Z Test Case '-[FlowTests.FlowCoreTests testPauseAndResumePreserveExactTimelinePosition]' passed (0.005 seconds).
+2026-10-02T01:48:29.6459070Z Test Case '-[FlowTests.FlowCoreTests testPureSilenceOverridesGuidanceAndPacing]' passed (0.001 seconds).
+2026-10-02T01:48:29.7607690Z Test Case '-[FlowTests.FlowCoreTests testRemoteCommandsPauseResumeAndStop]' passed (0.007 seconds).
+2026-10-02T01:48:29.8096750Z Test Case '-[FlowTests.FlowCoreTests testRepeatedStartAndCancelReleaseCallbacks]' passed (0.003 seconds).
+2026-10-02T01:48:29.8598790Z Test Case '-[FlowTests.FlowCoreTests testScreenLockAndForegroundRefreshDoNotPause]' passed (0.003 seconds).
+2026-10-02T01:48:29.9018880Z Test Case '-[FlowTests.FlowCoreTests testSilentGuidanceOnlyHasOpeningAndFullAddsPrompts]' passed (0.002 seconds).
+2026-10-02T01:48:29.9269430Z 	 Executed 18 tests, with 0 failures (0 unexpected) in 0.121 (0.297) seconds
+2026-10-02T01:48:31.4643220Z Test Case '-[FlowTests.NativeAudioTests testBundledAudioAndEveryNarrationTimeline]' passed (1.967 seconds).
+2026-10-02T01:48:31.6579700Z Test Case '-[FlowTests.NativeAudioTests testMissingAssetAndCancelledPreparationFailCleanly]' passed (0.192 seconds).
+2026-10-02T01:48:34.1665780Z Test Case '-[FlowTests.NativeAudioTests testNativeNotificationsPauseAndResetCanResume]' passed (2.505 seconds).
+2026-10-02T01:48:36.1925950Z Test Case '-[FlowTests.NativeAudioTests testNativePlaybackPauseResumeAndRepeatedCleanup]' passed (1.984 seconds).
+2026-10-02T01:48:37.9892510Z Test Case '-[FlowTests.NativeAudioTests testRenderedGuidanceSilenceAndBellPlacement]' passed (1.665 seconds).
+2026-10-02T01:48:45.9234820Z Test Case '-[FlowTests.NativeAudioTests testThirtyMinutePureSilenceIsFiniteAndSilentBetweenBells]' passed (7.964 seconds).
+2026-10-02T01:48:45.9579200Z 	 Executed 6 tests, with 0 failures (0 unexpected) in 16.277 (16.287) seconds
+2026-10-02T01:49:09.8016640Z Test Case '-[FlowTests.ScreenRenderingTests testRenderScreensAtNormalAndLargestTextWithReducedMotion]' passed (23.940 seconds).
+2026-10-02T01:49:09.8019700Z 	 Executed 1 test, with 0 failures (0 unexpected) in 23.940 (23.942) seconds
+2026-10-02T01:49:09.8022380Z 	 Executed 25 tests, with 0 failures (0 unexpected) in 40.338 (40.548) seconds
+2026-10-02T01:49:09.8023730Z 	 Executed 25 tests, with 0 failures (0 unexpected) in 40.338 (40.549) seconds
+2026-10-02T01:50:22.9329530Z Test Case '-[FlowUITests.SessionLaunchTests testFadeRevealAndBackgroundContinuation]' passed (59.132 seconds).
+2026-10-02T01:51:34.4486310Z /Users/runner/work/flow/flow/FlowUITests/SessionLaunchTests.swift:104: error: -[FlowUITests.SessionLaunchTests testNaturalSessionFirstStartAndRepeat] : XCTAssertEqual failed: ("XCTWaiterResult(rawValue: 2)") is not equal to ("XCTWaiterResult(rawValue: 1)")
+2026-10-02T01:51:35.4162640Z Test Case '-[FlowUITests.SessionLaunchTests testNaturalSessionFirstStartAndRepeat]' failed (72.101 seconds).
+2026-10-02T01:53:07.5838030Z Test Case '-[FlowUITests.SessionLaunchTests testPacedSettlingCanReturnToNatural]' passed (92.535 seconds).
+2026-10-02T01:53:29.7746900Z Test Case '-[FlowUITests.SessionLaunchTests testReadingSafetyDoesNotStartSession]' passed (22.234 seconds).
+2026-10-02T01:53:29.7780860Z 	 Executed 4 tests, with 1 failure (0 unexpected) in 246.002 (246.007) seconds
+2026-10-02T01:53:29.7791130Z 	 Executed 4 tests, with 1 failure (0 unexpected) in 246.002 (246.010) seconds
+2026-10-02T01:53:29.8366220Z 	 Executed 4 tests, with 1 failure (0 unexpected) in 246.002 (246.013) seconds
+2026-10-02T01:54:28.6216960Z ** TEST FAILED **

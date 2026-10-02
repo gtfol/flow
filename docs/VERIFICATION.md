@@ -12,17 +12,19 @@ Current iteration: **0.2.0 (4)**, October 1, 2026. Xcode 26.6 (17F113), Swift 6.
 - **Nine Brian recordings decoded and measured.** Durations, hashes, sample rates, channels, and levels are saved in `Flow/Resources/narration-metrics.json`. No clipped decoded source samples were found. The introduction matches the earlier Brian audition byte-for-byte.
 - **Test targets compile.** The expanded iPhone suite includes native renderer/playback checks, actual SwiftUI screen captures at normal and largest accessibility text, and production UI navigation.
 
-## First GitHub iPhone run
+## iPhone checks
 
-[Run 36946797452](https://github.com/gtfol/flow/actions/runs/36946797452) passed all **25 iPhone-hosted tests**: 18 core, six native audio, and one test rendering 23 screen variants. The actual audio background array, every narration schedule, silence/bell placement, cancellation, playback/pause/resume, repeated cleanup, and interruption/media-reset handling passed.
+[Run 36952051897](https://github.com/gtfol/flow/actions/runs/36952051897), source `affc868`, passed all **25 iPhone-hosted tests**: 18 core, six native audio, and one test rendering 23 screen variants. Native checks cover the audio background mode, all narration schedules, silence/bell placement, cancellation, playback/pause/resume, repeated cleanup, and interruption/media-reset handling.
 
-Three of four navigation tests failed. The captures and accessibility traces exposed overlapping player tap regions and the animated reveal layer intercepting subsequent touches. Player text buttons now use explicit non-overlapping label bounds with plain styling, and the reveal surface disables hit testing immediately. The home hero is smaller so guidance fits above Begin at standard text size. A new check verifies End sits below the pause/resume target. The first repair still failed the navigation assertions in [run 36948320413](https://github.com/gtfol/flow/actions/runs/36948320413), while all 25 iPhone-hosted tests passed again. The current repair removes the invisible overlay entirely, uses a simultaneous screen-tap gesture, and explicitly keeps the footer controls in separate accessibility elements. Its navigation rerun is pending; this is not yet a release-ready result.
+**Three of four navigation tests passed:** actual screen fading and tap-to-reveal, background continuation, paced-to-natural override, and standalone safety. The visual test confirms the pause button changes from its light background to the dark canvas before restoring it with a real tap. This avoids an XCTest error when querying the activation point of a fully hidden SwiftUI control.
 
-## Pending for this iteration
+The first natural session passed pause/resume and End navigation, but the repeat-session End check failed after a long automation delay. The same production player passed first/repeated-session navigation in [run 36949753568](https://github.com/gtfol/flow/actions/runs/36949753568) and [run 36950646681](https://github.com/gtfol/flow/actions/runs/36950646681). A retry of the unchanged app/test sources is pending; the latest full run is not green. Earlier overlapping tap bounds were repaired with explicit control bounds, a contained accessibility group, and a simultaneous screen-tap gesture.
 
-The first local iPhone test run could not begin execution while the Mac was locked and was interrupted; it is not a passing result. A signed archive reached code signing but failed with `errSecInternalComponent` while the Mac was locked. Unlocking is needed for the remaining local UI checks and Xcode Organizer upload. Build 4 has not yet been uploaded.
+Current [screen captures](screenshots/README.md) replace the prior-release images. Home, setup, running/paused player, reduced-motion pacing, open silence, and completion were visually reviewed, including home/setup/paused views at the largest accessibility text size. Long content scrolls while primary controls remain fixed.
 
-Remaining automated checks: re-run after the interaction fixes, review the final screen captures, and confirm UI navigation for first/repeated launch, fade/reveal, background return, paced-to-natural override, and standalone safety. Results will be updated when those checks finish. The existing screenshots in `docs/screenshots` are from the prior release until replaced.
+## Upload pending
+
+The first local iPhone test run could not begin execution while the Mac was locked and was interrupted; it is not a passing result. A signed archive reached code signing but failed with `errSecInternalComponent` while the Mac was locked. Unlocking is needed for signed archiving and the Xcode Organizer upload. Build 4 has not yet been uploaded. The last distributed TestFlight build remains **0.1.0 (3)**.
 
 ## Verification boundaries
 
