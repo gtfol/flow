@@ -1,6 +1,6 @@
 # Native screen captures
 
-These build **0.2.0 (4)** images show the compiled SwiftUI views on an iPhone 17 Pro simulator. They were exported from [run 36952051897](https://github.com/gtfol/flow/actions/runs/36952051897), source commit `affc868`. All 25 hosted tests and three navigation tests passed. The repeat-session test failed after an automation delay and is being retried. See [verification](../VERIFICATION.md).
+These build **0.2.0 (4)** images show the compiled SwiftUI views on an iPhone 17 Pro simulator. They were exported from the successful [run 36953418240](https://github.com/gtfol/flow/actions/runs/36953418240), source commit `1853af3`. All 25 hosted tests and four navigation tests passed. See [verification](../VERIFICATION.md) for scope and remaining physical-device checks.
 
 | Screen | Standard text | Largest accessibility text / static motion |
 | --- | --- | --- |

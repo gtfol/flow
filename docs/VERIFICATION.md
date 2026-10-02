@@ -12,15 +12,20 @@ Current iteration: **0.2.0 (4)**, October 1, 2026. Xcode 26.6 (17F113), Swift 6.
 - **Nine Brian recordings decoded and measured.** Durations, hashes, sample rates, channels, and levels are saved in `Flow/Resources/narration-metrics.json`. No clipped decoded source samples were found. The introduction matches the earlier Brian audition byte-for-byte.
 - **Test targets compile.** The expanded iPhone suite includes native renderer/playback checks, actual SwiftUI screen captures at normal and largest accessibility text, and production UI navigation.
 
-## iPhone checks
+## Passing GitHub checks
 
-[Run 36952051897](https://github.com/gtfol/flow/actions/runs/36952051897), source `affc868`, passed all **25 iPhone-hosted tests**: 18 core, six native audio, and one test rendering 23 screen variants. Native checks cover the audio background mode, all narration schedules, silence/bell placement, cancellation, playback/pause/resume, repeated cleanup, and interruption/media-reset handling.
+[Run 36953418240](https://github.com/gtfol/flow/actions/runs/36953418240), source `1853af3`, passed the macOS and iPhone jobs:
 
-**Three of four navigation tests passed:** actual screen fading and tap-to-reveal, background continuation, paced-to-natural override, and standalone safety. The visual test confirms the pause button changes from its light background to the dark canvas before restoring it with a real tap. This avoids an XCTest error when querying the activation point of a fully hidden SwiftUI control.
+- **18 macOS core tests**, zero failures.
+- **25 iPhone-hosted tests**, zero failures: 18 core, six native audio, and one rendering test capturing 23 screen variants. Native audio checks cover the background-mode declaration, all narration schedules, silence/bell placement, cancellation, playback/pause/resume, repeated cleanup, and interruption/media-reset handling.
+- **Four UI navigation tests**, zero failures: first and repeated natural-session launch with pause/resume/End/Done, actual screen fading and tap-to-reveal with background continuation, paced-to-natural override, and standalone safety navigation.
+- Simulator Debug and unsigned device Release builds, plus reproducible Xcode project generation, passed.
 
-The first natural session passed pause/resume and End navigation, but the repeat-session End check failed after a long automation delay. The same production player passed first/repeated-session navigation in [run 36949753568](https://github.com/gtfol/flow/actions/runs/36949753568) and [run 36950646681](https://github.com/gtfol/flow/actions/runs/36950646681). A retry of the unchanged app/test sources is pending; the latest full run is not green. Earlier overlapping tap bounds were repaired with explicit control bounds, a contained accessibility group, and a simultaneous screen-tap gesture.
+The visual fade test confirms the pause button changes from its light background to the dark canvas before a real tap restores it. This avoids an XCTest invalid-activation-point error when querying a fully hidden SwiftUI control. End/Pause bounds are asserted separately. Earlier overlapping bounds were repaired with explicit control bounds, a contained accessibility group, and a simultaneous screen-tap gesture.
 
-Current [screen captures](screenshots/README.md) replace the prior-release images. Home, setup, running/paused player, reduced-motion pacing, open silence, and completion were visually reviewed, including home/setup/paused views at the largest accessibility text size. Long content scrolls while primary controls remain fixed.
+An earlier [run](https://github.com/gtfol/flow/actions/runs/36952051897) had one repeat-session navigation timeout after a long automation delay. The successful run used unchanged app and test sources; the intervening commit updated documentation and previews only. Local manual/device verification remains outstanding, as listed below.
+
+Current [screen captures](screenshots/README.md) replace the prior-release images. Home, setup, running/paused player, reduced-motion pacing, open silence, and completion were visually reviewed, including home/setup/paused views at the largest accessibility text size. Long content scrolls while primary controls remain fixed. Full test output is summarized in `test-results.txt`; GitHub retains the complete result bundle and attachments.
 
 ## Upload pending
 
