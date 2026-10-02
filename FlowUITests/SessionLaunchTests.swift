@@ -1,4 +1,5 @@
 import XCTest
+import UIKit
 
 final class SessionLaunchTests: XCTestCase {
     private var app: XCUIApplication!
@@ -57,7 +58,7 @@ final class SessionLaunchTests: XCTestCase {
         begin(acknowledge: true)
         waitForControlsToFade()
         // Pacing is intentionally absent from Arrive. Wait for the real Settle phase.
-        sleep(23)
+        sleep(20)
         app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
         let natural = app.buttons["return-natural"]
         waitForHittable(natural)
@@ -109,12 +110,30 @@ final class SessionLaunchTests: XCTestCase {
         XCTAssertTrue(app.buttons["start-session"].waitForExistence(timeout: 5))
     }
     private func waitForControlsToFade() {
-        // SwiftUI may retain an element in the accessibility snapshot while its
-        // opacity is zero. The behavioral requirement is that hidden controls
-        // cannot consume a reveal tap.
-        let faded = XCTNSPredicateExpectation(predicate: NSPredicate(format: "hittable == false"), object: app.buttons["player-primary"])
-        XCTAssertEqual(XCTWaiter.wait(for: [faded], timeout: 22), .completed)
-        XCTAssertFalse(app.buttons["stop-session"].isHittable)
+        // The iOS accessibility snapshot retains faded SwiftUI buttons and can
+        // throw instead of returning false for isHittable. Check the actual
+        // rendered button background, then exercise the screen tap to reveal.
+        let frame = app.buttons["player-primary"].frame
+        let sample = CGPoint(x: frame.minX + frame.width * 0.15, y: frame.midY)
+        XCTAssertGreaterThan(screenBrightness(at: sample), 0.5, "The pause button must initially be visible")
+        sleep(17) // 14 seconds until fading, plus the two-second transition.
+        XCTAssertLessThan(screenBrightness(at: sample), 0.15, "The pause button must fade to the dark canvas")
+    }
+    private func screenBrightness(at point: CGPoint) -> Double {
+        guard let source = app.screenshot().image.cgImage else { XCTFail("Screenshot unavailable"); return -1 }
+        let scale = CGFloat(source.width) / app.frame.width
+        let region = CGRect(x: point.x * scale, y: point.y * scale, width: 1, height: 1)
+        guard let pixel = source.cropping(to: region) else { XCTFail("Button sample is outside the screen"); return -1 }
+        var rgba = [UInt8](repeating: 0, count: 4)
+        let drew = rgba.withUnsafeMutableBytes { buffer -> Bool in
+            guard let context = CGContext(data: buffer.baseAddress, width: 1, height: 1, bitsPerComponent: 8,
+                                          bytesPerRow: 4, space: CGColorSpaceCreateDeviceRGB(),
+                                          bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { return false }
+            context.draw(pixel, in: CGRect(x: 0, y: 0, width: 1, height: 1))
+            return true
+        }
+        XCTAssertTrue(drew)
+        return Double(Int(rgba[0]) + Int(rgba[1]) + Int(rgba[2])) / (3 * 255)
     }
     private func waitForHittable(_ element: XCUIElement) {
         let ready = XCTNSPredicateExpectation(predicate: NSPredicate(format: "hittable == true"), object: element)
