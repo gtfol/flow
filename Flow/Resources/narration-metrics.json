@@ -1,0 +1,101 @@
+{
+  "body.mp3": {
+    "sha256": "32470f7f3ba8d49b73e50a79b67966a636aedef9c6f03ab29c979c57230830f1",
+    "duration": 9.87425,
+    "sample_rate": 44100,
+    "channels": 1,
+    "voice": "Brian \u2013 Deep, Resonant and Comforting",
+    "model": "Eleven v4",
+    "title": "guidance \u00b7 elevenlabs.io",
+    "mean_volume": "-24.4",
+    "max_volume": "-1.2"
+  },
+  "gentle.mp3": {
+    "sha256": "c3c876d3ccd491ffb71a321cfcc03988cb3672b6f293ce8a50e141fccfdaecf4",
+    "duration": 8.359125,
+    "sample_rate": 44100,
+    "channels": 1,
+    "voice": "Brian \u2013 Deep, Resonant and Comforting",
+    "model": "Eleven v4",
+    "title": "guidance \u00b7 elevenlabs.io",
+    "mean_volume": "-25.0",
+    "max_volume": "-7.8"
+  },
+  "introduction.mp3": {
+    "sha256": "e495661aebdc268e46520572aeedb9cabcf62be4a1547e4d2d889a9f75bb50e8",
+    "duration": 28.10775,
+    "sample_rate": 44100,
+    "channels": 1,
+    "voice": "Brian \u2013 Deep, Resonant and Comforting",
+    "model": "Eleven v4",
+    "title": "guidance \u00b7 elevenlabs.io",
+    "mean_volume": "-24.6",
+    "max_volume": "-1.4"
+  },
+  "open.mp3": {
+    "sha256": "d74f739ee3291f749cb4b13169a4e3ab28f66a2a784c31c3c70488c6ab7add68",
+    "duration": 10.448938,
+    "sample_rate": 44100,
+    "channels": 1,
+    "voice": "Brian \u2013 Deep, Resonant and Comforting",
+    "model": "Eleven v4",
+    "title": "guidance \u00b7 elevenlabs.io",
+    "mean_volume": "-23.7",
+    "max_volume": "-5.0"
+  },
+  "pace.mp3": {
+    "sha256": "a34f5c48ff816acafde7fb38d3cc396e804b5caff7e276fbe1e59b13d9bc7823",
+    "duration": 13.244063,
+    "sample_rate": 44100,
+    "channels": 1,
+    "voice": "Brian \u2013 Deep, Resonant and Comforting",
+    "model": "Eleven v4",
+    "title": "guidance \u00b7 elevenlabs.io",
+    "mean_volume": "-23.8",
+    "max_volume": "-3.7"
+  },
+  "return.mp3": {
+    "sha256": "f1d24ec59b4c27f2ac5c02bea84391d744738852445427756e97f941993d01cd",
+    "duration": 10.9975,
+    "sample_rate": 44100,
+    "channels": 1,
+    "voice": "Brian \u2013 Deep, Resonant and Comforting",
+    "model": "Eleven v4",
+    "title": "guidance \u00b7 elevenlabs.io",
+    "mean_volume": "-23.5",
+    "max_volume": "-4.3"
+  },
+  "settle.mp3": {
+    "sha256": "179067dc904c972ad1d03fa7c942eb8fd516072609e867afa290b73beba145ce",
+    "duration": 9.247313,
+    "sample_rate": 44100,
+    "channels": 1,
+    "voice": "Brian \u2013 Deep, Resonant and Comforting",
+    "model": "Eleven v4",
+    "title": "guidance \u00b7 elevenlabs.io",
+    "mean_volume": "-24.2",
+    "max_volume": "-5.0"
+  },
+  "sound.mp3": {
+    "sha256": "d3459cf44d19ba228cae3dee4a91b873864294a6c5ea67a52ca12c3591ffe7fb",
+    "duration": 8.280813,
+    "sample_rate": 44100,
+    "channels": 1,
+    "voice": "Brian \u2013 Deep, Resonant and Comforting",
+    "model": "Eleven v4",
+    "title": "guidance \u00b7 elevenlabs.io",
+    "mean_volume": "-23.6",
+    "max_volume": "-3.5"
+  },
+  "thoughts.mp3": {
+    "sha256": "4f3068993b1b8b335c6149aa76a3fa16db1c75f27debee6c8cc4501483a70f1e",
+    "duration": 8.515875,
+    "sample_rate": 44100,
+    "channels": 1,
+    "voice": "Brian \u2013 Deep, Resonant and Comforting",
+    "model": "Eleven v4",
+    "title": "guidance \u00b7 elevenlabs.io",
+    "mean_volume": "-23.3",
+    "max_volume": "-6.1"
+  }
+}

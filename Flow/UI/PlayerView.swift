@@ -2,146 +2,151 @@ import SwiftUI
 
 struct PlayerView: View {
     @Bindable var coordinator: SessionCoordinator
-    // Nil in the app; deterministic rendering tests can exercise the static alternative.
     var reduceMotionOverride: Bool? = nil
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityVoiceOverEnabled) private var voiceOver
     @Environment(\.dynamicTypeSize) private var typeSize
+    @State private var revealedAt: TimeInterval = 0
+    @State private var lingering = true
     private var engine: SessionEngine { coordinator.engine }
-
+    private var motionReduced: Bool { reduceMotionOverride ?? reduceMotion }
+    private var recentlyRevealed: Bool { engine.elapsed - revealedAt < 14 }
+    private var controlsVisible: Bool { voiceOver || recentlyRevealed || engine.state != .running || engine.segment.stage == .returning }
+    private var timerVisible: Bool { controlsVisible || engine.elapsed < 25 }
+    private var textVisible: Bool { controlsVisible || engine.elapsed < 40 || (motionReduced && engine.phase != nil) }
+    private var visualOpacity: Double {
+        guard engine.state == .running else { return 0.6 }
+        if engine.definition.practice == .silence { return max(0, 1 - engine.elapsed / 18) }
+        switch engine.segment.stage {
+        case .open: return max(0, 1 - (engine.elapsed - engine.segment.start) / 12)
+        case .returning: return min(0.75, (engine.elapsed - engine.segment.start) / 8)
+        default: return 1
+        }
+    }
     var body: some View {
         Group {
             if engine.isTerminal { finish }
             else { player }
-        }
-        .flowScreen()
-        .onAppear { coordinator.start() }
-        .onDisappear { coordinator.cancel() }
-        .onChange(of: scenePhase) { _, phase in
-            if phase != .active { coordinator.appBecameInactive() }
-        }
-        .interactiveDismissDisabled()
+        }.flowScreen()
+            .onAppear { coordinator.start(); updateAwake() }
+            .onDisappear { UIApplication.shared.isIdleTimerDisabled = false; coordinator.cancel() }
+            .onChange(of: scenePhase) { _, phase in
+                if phase == .active { coordinator.appBecameActive() }
+                updateAwake()
+            }
+            .onChange(of: engine.state) { _, _ in revealedAt = engine.elapsed; updateAwake() }
+            .onChange(of: engine.segment.stage) { _, _ in updateAwake() }
+            .interactiveDismissDisabled()
     }
-
     private var player: some View {
-        ScrollView {
-            VStack(spacing: 20) {
-                VStack(spacing: 8) {
+        ZStack {
+            FlowStyle.canvas.ignoresSafeArea()
+            ScrollView {
+                VStack(spacing: 22) {
                     Text(engine.definition.title).font(.subheadline).foregroundStyle(FlowStyle.muted)
-                    Text(engine.state == .introduction ? "arrive as you are." : cueTitle)
-                        .font(.system(.largeTitle, design: .serif))
-                        .multilineTextAlignment(.center)
-                        .accessibilityIdentifier("current-cue")
-                }.padding(.top, 28)
-
-                if engine.state == .introduction || (engine.isPaused && engine.elapsed == 0) {
-                    if !typeSize.isAccessibilitySize {
-                        BreathingVisual(phase: nil, running: true, reduceMotion: true).frame(height: 190)
-                    }
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text(Guidance.introductionTitle).font(.caption).foregroundStyle(FlowStyle.muted)
-                        Text(Guidance.introduction).font(.body).lineSpacing(5)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .accessibilityIdentifier("introduction")
-                    }
-                } else {
-                    if !typeSize.isAccessibilitySize {
-                        BreathingVisual(phase: engine.phase, running: engine.state == .running,
-                                        reduceMotion: reduceMotionOverride ?? reduceMotion)
-                            .frame(height: 250)
-                    }
-                    VStack(spacing: 12) {
-                        if engine.mode == .paced && !engine.isPaused {
-                            Text("\(Int(ceil(engine.phase?.remaining ?? 4))) seconds · only if comfortable")
-                                .font(.subheadline).foregroundStyle(FlowStyle.muted)
-                                .monospacedDigit()
-                                .accessibilityLabel("optional four second cue. follow your own comfort.")
-                        } else {
-                            Text(engine.isPaused ? "take all the time you need." : "nothing to match. just your breath.")
-                                .font(.subheadline).foregroundStyle(FlowStyle.muted)
-                        }
-                        Text(timeText(engine.remaining, roundUp: true))
-                            .font(.system(.title, design: .rounded).monospacedDigit())
-                            .accessibilityLabel("\(Int(ceil(engine.remaining))) seconds remaining")
-                            .accessibilityIdentifier("session-remaining")
-                        Text("remaining · \(timeText(engine.elapsed)) active")
-                            .font(.caption).foregroundStyle(FlowStyle.muted).monospacedDigit()
-                            .accessibilityLabel("\(Int(engine.elapsed)) seconds active")
-                        ProgressView(value: engine.elapsed, total: engine.definition.duration)
-                            .tint(FlowStyle.accent).accessibilityHidden(true)
-                    }
-                    if engine.mode == .paced {
-                        Button("return to natural breathing") { coordinator.setMode(.natural) }
-                            .font(.subheadline).frame(minHeight: 44)
-                            .accessibilityIdentifier("return-natural")
+                        .opacity(textVisible ? 1 : 0).accessibilityHidden(!textVisible)
+                    Text(cueTitle).font(.system(.largeTitle, design: .serif))
+                        .multilineTextAlignment(.center).accessibilityIdentifier("current-cue")
+                        .opacity(textVisible ? 1 : 0).accessibilityHidden(!textVisible)
+                    if engine.state == .preparing {
+                        ProgressView().tint(FlowStyle.accent).padding(40)
+                        Text("making a little space…").foregroundStyle(FlowStyle.muted)
                     } else {
-                        Text("natural breathing").font(.caption).foregroundStyle(FlowStyle.muted)
+                        if !typeSize.isAccessibilitySize {
+                            BreathingVisual(phase: engine.phase, running: engine.state == .running, reduceMotion: motionReduced)
+                                .frame(height: 260).opacity(visualOpacity)
+                                .blur(radius: engine.segment.stage == .expand && !motionReduced ? 4 : 0)
+                        }
+                        Text(timeText(engine.remaining, roundUp: true)).font(.system(.title2, design: .rounded).monospacedDigit())
+                            .foregroundStyle(FlowStyle.muted).accessibilityIdentifier("session-remaining")
+                            .accessibilityLabel("\(Int(ceil(engine.remaining))) seconds remaining")
+                            .opacity(timerVisible ? 1 : 0).accessibilityHidden(!timerVisible)
+                        if let caption, textVisible {
+                            Text(caption).font(.body).lineSpacing(5).multilineTextAlignment(.center)
+                                .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("guidance-caption")
+                            if engine.definition.practice != .silence {
+                                Text(Guidance.introductionTitle).font(.caption2).foregroundStyle(FlowStyle.muted)
+                            }
+                        }
+                        if engine.elapsed < 12 {
+                            Text("the screen will fade. tap to bring it back.").font(.footnote)
+                                .foregroundStyle(FlowStyle.muted).multilineTextAlignment(.center)
+                        }
                     }
-                }
-
-                if let notice = engine.interruptionReason ?? coordinator.notice {
-                    Text(notice).font(.subheadline).lineSpacing(4)
-                        .padding(18).frame(maxWidth: .infinity, alignment: .leading)
-                        .background(FlowStyle.surface, in: RoundedRectangle(cornerRadius: 16))
-                        .accessibilityIdentifier("recovery-message")
-                }
-                Toggle(isOn: Binding(get: { coordinator.preferences.sound }, set: { coordinator.setSound($0) })) {
-                    Label("sound", systemImage: coordinator.preferences.sound ? "speaker.wave.2" : "speaker.slash")
-                }.accessibilityIdentifier("player-sound")
-                    .padding(.horizontal, 10).padding(.bottom, 10)
-            }.padding(.horizontal, 28).padding(.bottom, 16)
+                    if let notice = engine.interruptionReason ?? coordinator.notice {
+                        Text(notice).font(.subheadline).padding(18).frame(maxWidth: .infinity)
+                            .background(FlowStyle.surface, in: RoundedRectangle(cornerRadius: 16))
+                            .accessibilityIdentifier("recovery-message")
+                    }
+                }.padding(.horizontal, 28).padding(.top, 36).padding(.bottom, 24)
+            }
         }
         .safeAreaInset(edge: .bottom) {
-            VStack(spacing: 6) {
-                Button(engine.state == .introduction ? (typeSize.isAccessibilitySize ? "begin" : "begin breathing") : engine.isPaused ? "resume" : "pause") {
-                    if engine.state == .running { coordinator.pause() }
-                    else { coordinator.resume() }
-                }.buttonStyle(FlowPrimaryButton())
-                    .accessibilityIdentifier("player-primary")
-                Button("stop session") { coordinator.stop() }
-                    .font(.body).foregroundStyle(FlowStyle.ink)
-                    .frame(maxWidth: .infinity, minHeight: 48)
-                    .accessibilityHint("ends this session without adding a completion")
-                    .accessibilityIdentifier("stop-session")
+            VStack(spacing: 8) {
+                if engine.state != .preparing {
+                    if engine.mode == .paced && engine.segment.stage == .settle {
+                        Button("return to natural breathing") { coordinator.useNaturalBreathing(); reveal(); updateAwake() }
+                            .font(.subheadline).frame(minHeight: 44).accessibilityIdentifier("return-natural")
+                    }
+                    Button(coordinator.muted ? "unmute audio" : "mute audio") { coordinator.setMuted(!coordinator.muted); reveal() }
+                        .font(.subheadline).frame(minHeight: 44).accessibilityIdentifier("player-mute")
+                    Button(engine.isPaused ? "resume" : "pause") {
+                        if engine.isPaused { coordinator.resume() } else { coordinator.pause() }
+                        reveal()
+                    }.buttonStyle(FlowPrimaryButton()).accessibilityIdentifier("player-primary")
+                }
+                Button("end session") { coordinator.stop() }
+                    .frame(maxWidth: .infinity, minHeight: 48).accessibilityIdentifier("stop-session")
             }.padding(.horizontal, 24).padding(.top, 12).padding(.bottom, 4)
-                .background(FlowStyle.canvas)
+                .background(FlowStyle.canvas).opacity(controlsVisible ? 1 : 0)
+                .allowsHitTesting(controlsVisible).accessibilityHidden(!controlsVisible)
         }
+        .overlay {
+            if !controlsVisible {
+                Color.clear.contentShape(Rectangle()).ignoresSafeArea().onTapGesture { reveal() }
+                    .accessibilityLabel("show session controls").accessibilityAddTraits(.isButton)
+                    .accessibilityIdentifier("reveal-controls")
+            }
+        }
+        .animation(motionReduced ? nil : .easeInOut(duration: 2), value: controlsVisible)
+        .animation(motionReduced ? nil : .easeInOut(duration: 2), value: textVisible)
+        .animation(motionReduced ? nil : .easeInOut(duration: 2), value: timerVisible)
     }
-
+    private var caption: String? {
+        if engine.isPaused { return "take all the time you need." }
+        if engine.definition.practice == .silence { return "a bell will mark the end. rest here." }
+        return engine.definition.narration.last(where: { $0.time <= engine.elapsed && engine.elapsed < $0.time + 30 })?.text
+    }
     private var cueTitle: String {
         if engine.isPaused { return "paused" }
-        guard let phase = engine.phase else { return "your own rhythm." }
-        return phase.kind == .inhale ? "breathe in" : "breathe out"
+        if engine.state == .preparing { return "settle in." }
+        if let phase = engine.phase { return phase.kind == .inhale ? "breathe in" : "breathe out" }
+        return engine.segment.stage.title
     }
-
+    private func reveal() { revealedAt = engine.elapsed }
+    private func updateAwake() {
+        UIApplication.shared.isIdleTimerDisabled = scenePhase == .active && engine.state == .running && engine.phase != nil
+    }
     private var finish: some View {
-        ScrollView {
-            VStack(spacing: 28) {
-                Text("flow").font(.system(.title2, design: .serif)).padding(.top, 30)
-                if !typeSize.isAccessibilitySize {
-                    BreathingVisual(phase: nil, running: true, reduceMotion: true).frame(height: 260)
-                }
-                VStack(spacing: 14) {
-                    Text(engine.state == .completed ? "session finished" : "session stopped")
-                        .font(.system(.largeTitle, design: .serif))
-                        .accessibilityIdentifier("finish-title")
-                    Text("\(timeText(engine.elapsed)) of active time")
-                        .font(.subheadline).foregroundStyle(FlowStyle.accent)
-                    Text(Guidance.ending).font(.body).lineSpacing(5)
-                        .padding(.top, 12)
-                    if engine.state == .stopped {
-                        Text("you can stop at any time. this session was not added to your history.")
-                            .font(.footnote).foregroundStyle(FlowStyle.muted).padding(.top, 8)
-                    }
-                }.multilineTextAlignment(.center)
-                    .fixedSize(horizontal: false, vertical: true)
-            }.padding(28)
-        }
-        .safeAreaInset(edge: .bottom) {
-            Button("done") { dismiss() }
-                .buttonStyle(FlowPrimaryButton()).accessibilityIdentifier("finish-done")
-                .padding(24).background(FlowStyle.canvas)
-        }
+        VStack(spacing: 24) {
+            Spacer()
+            if engine.state == .completed && lingering {
+                Text("take a moment.").font(.system(.title, design: .serif)).foregroundStyle(FlowStyle.muted)
+            } else {
+                Text(engine.state == .completed ? "sit complete." : "session stopped")
+                    .font(.system(.largeTitle, design: .serif)).accessibilityIdentifier("finish-title")
+                Text(timeText(engine.elapsed)).font(.title3.monospacedDigit()).foregroundStyle(FlowStyle.muted)
+                Text(Guidance.ending).font(.subheadline).foregroundStyle(FlowStyle.muted)
+            }
+            Spacer()
+            Button("done") { dismiss() }.buttonStyle(FlowPrimaryButton()).accessibilityIdentifier("finish-done")
+        }.multilineTextAlignment(.center).padding(28)
+            .task {
+                guard engine.state == .completed else { lingering = false; return }
+                do { try await Task.sleep(for: .seconds(15)) } catch { return }
+                lingering = false
+            }
     }
 }

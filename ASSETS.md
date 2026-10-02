@@ -1,33 +1,42 @@
 # Asset provenance
 
-All bundled experience content was produced specifically for flow. No music, recordings, artwork, scripts, or branding were copied from Othership. The introduction uses a generated ElevenLabs recording, described below.
+All experience content was created for flow. No recordings, scripts, artwork, or branding were copied from Othership.
 
 | Asset | Origin | Reproduce |
 | --- | --- | --- |
-| `ambient.wav` | Original additive synthesis: quiet sine partials at 110, 165, 220, 275, and 330 Hz, slow level variation, stereo offsets, 1.2-second endpoint fades. 60 seconds, 24 kHz stereo, 16-bit PCM. Repeats without a fast beat or escalating intensity. | `python3 scripts/synthesize_audio.py` |
-| `inhale.wav` | Original 440 Hz / 660 Hz tone with smooth attack and decay; 0.8 seconds. | Same script |
-| `exhale.wav` | Original 330 Hz / 495 Hz tone with smooth attack and decay; 0.8 seconds. | Same script |
-| `introduction.mp3` — **introduction · elevenlabs.io** | Original flow script, generated with ElevenLabs' included **Sarah – Mature, Reassuring, Confident** voice and **Eleven v4** on October 1, 2026. Selected by the app owner after audition. 27.6375 seconds, 44.1 kHz mono, MP3. | Generation prompt below; model output is nondeterministic. |
-| Session card artwork | Original SwiftUI gradients and Bézier line studies in `FlowStyle.swift`. Native vector rendering, no bitmap source. | Build the app |
-| Player visual | Original concentric circles and radial gradients in SwiftUI. Natural mode is stationary. | Build the app |
-| App icon | Five original concentric sage rings, an open center, and a dark radial gradient; rendered with AppKit/Core Graphics at 1024 × 1024. | `swift scripts/make_icon.swift Flow/Resources/Assets.xcassets/AppIcon.appiconset` |
-| Typography and control glyphs | System SwiftUI fonts and Apple SF Symbols, rendered at runtime; no third-party font files. | Provided by iOS |
-| Guidance and safety text | Original copy supplied in the user brief, with the introduction revised for clarity. Safety guidance is preserved verbatim. | `Guidance` in `SessionDefinition.swift` |
-| Session definitions | Original names and descriptions from the user brief; content revision 1. | Bundled `sessions.json` |
+| `ambient.wav` | Original additive synthesis, 60 seconds, 24 kHz stereo PCM; quiet partials and endpoint fades. | `python3 scripts/synthesize_audio.py` |
+| `bell.wav` | Original additive bell with a soft attack and eight-second decay; no sampled instrument. | Same script |
+| Narration MP3s | Original flow scripts generated with **Brian – Deep, Resonant and Comforting**, **Eleven v4**, October 1, 2026 (downloads dated October 2 UTC). | Prompts described below; model output is nondeterministic. |
+| Interface and player artwork | Original SwiftUI concentric rings, radial gradients, and vector drawing. | Build the app |
+| App icon | Original concentric sage rings with an open center, no lettermark. | `swift scripts/make_icon.swift Flow/Resources/Assets.xcassets/AppIcon.appiconset` |
+| Typography and glyphs | Apple system fonts and SF Symbols; no third-party font files. | iOS |
+| Practice plans and text | Original implementation from the owner’s briefs; accepted first iteration uses three practices and six duration presets. | `SessionDefinition.swift` |
 
-`Flow/Resources/audio-metrics.json` records exact SHA-256 hashes, levels, durations, and sample rate. The generator has no dependencies, random seed, network requests, or paid service. Exact byte identity assumes the same Python/libm floating-point implementation; PCM remains functionally equivalent on other supported systems.
+## Guidance · elevenlabs.io
 
-The ambient file peaks at approximately −27.14 dBFS and has approximately −35.72 dBFS RMS before the user's volume setting. The phase tones peak around −29.05 dBFS. Playback uses additional volume controls; device output volume still matters. These measurements verify digital headroom, not perceived loudness or comfort.
+The owner requested Brian, the other voice from the earlier auditions, in place of Sarah. All nine bundled narration files use Brian. Playback is entirely offline, with no runtime voice generation. The voice is AI-generated; no human recording session or listening-quality certification is claimed.
 
-## Introduction · elevenlabs.io
+MP3 originals are retained byte-for-byte, including embedded content credentials. Rendering decodes them into a temporary mixed recording; it does not overwrite the originals. The visible captions come from `Guidance.introduction` and `Guidance.clips`. Voice gain is 0.8; bell and ambient gains use the saved preferences. Digital headroom is measured, but speaker/headphone comfort still needs listening on the target device.
 
-The optional introduction plays a bundled recording, with no runtime speech synthesis, voice download, account, or network call. The visible transcript matches the recording. The narration is AI-generated; no human recording session or Othership production quality is claimed. The owner selected Sarah after listening to two auditions.
+| File | Duration (s) | Mean / peak (dBFS) | SHA-256 |
+| --- | ---: | --- | --- |
+| `body.mp3` | 9.874 | -24.4 / -1.2 | `32470f7f3ba8d49b73e50a79b67966a636aedef9c6f03ab29c979c57230830f1` |
+| `gentle.mp3` | 8.359 | -25.0 / -7.8 | `c3c876d3ccd491ffb71a321cfcc03988cb3672b6f293ce8a50e141fccfdaecf4` |
+| `introduction.mp3` | 28.108 | -24.6 / -1.4 | `e495661aebdc268e46520572aeedb9cabcf62be4a1547e4d2d889a9f75bb50e8` |
+| `open.mp3` | 10.449 | -23.7 / -5.0 | `d74f739ee3291f749cb4b13169a4e3ab28f66a2a784c31c3c70488c6ab7add68` |
+| `pace.mp3` | 13.244 | -23.8 / -3.7 | `a34f5c48ff816acafde7fb38d3cc396e804b5caff7e276fbe1e59b13d9bc7823` |
+| `return.mp3` | 10.998 | -23.5 / -4.3 | `f1d24ec59b4c27f2ac5c02bea84391d744738852445427756e97f941993d01cd` |
+| `settle.mp3` | 9.247 | -24.2 / -5.0 | `179067dc904c972ad1d03fa7c942eb8fd516072609e867afa290b73beba145ce` |
+| `sound.mp3` | 8.281 | -23.6 / -3.5 | `d3459cf44d19ba228cae3dee4a91b873864294a6c5ea67a52ca12c3591ffe7fb` |
+| `thoughts.mp3` | 8.516 | -23.3 / -6.1 | `4f3068993b1b8b335c6149aa76a3fa16db1c75f27debee6c8cc4501483a70f1e` |
 
-The original file is preserved unchanged, including its embedded content credentials. SHA-256: `1a824f6ef61a432a45feae2c66ad5966c0612a709d30d4dc5bd4512859f33d80`. Decoded mean level: −22.7 dBFS; peak: −2.4 dBFS. Playback applies a volume multiplier of 0.8. File measurements do not establish perceived comfort on every device.
+Exact sample rate, channels, hashes, and levels are in `Flow/Resources/narration-metrics.json`. Original synthesized audio measurements are in `audio-metrics.json`. The old inhale/exhale WAVs and session JSON are no longer bundled in the app.
 
-This recording was generated on ElevenLabs' Free plan. The owner intends flow to remain free and noncommercial, without monetization. ElevenLabs permits noncommercial sharing with attribution in the content title; `introduction · elevenlabs.io` appears beside the introduction and in source notes. See the [publishing policy](https://help.elevenlabs.io/hc/en-us/articles/13313564601361-Can-I-publish-the-content-I-generate-on-the-platform) and [terms](https://elevenlabs.io/terms-of-use), checked October 1, 2026. Those pages do not specifically resolve every free App Store distribution scenario. This is not a commercial-use license or a claim that free pricing alone establishes noncommercial use. Commercial reuse requires a separately licensed recording. The audio is not offered under an open-source license.
+### Generation prompts
 
-Generation settings: stability 0.5, similarity 0.75; default speed. Prompt:
+All new prompts begin `[speaking slowly, softly, with warmth]`, with `[long pause]` between sentences. Their spoken text is exactly `Guidance.clips` in `SessionDefinition.swift`; the pace prompt writes “Five seconds in... and five seconds out.” Settings: speed 1.0, stability 0.5, similarity 0.75, Eleven v4. Generation 1 was downloaded for each cue.
+
+The introduction reuses the original Brian audition with this prompt:
 
 ```text
 [speaking slowly, softly, with warmth] Find a comfortable place to sit... or lie down. [long pause]
@@ -41,4 +50,8 @@ Follow the gentle cue if it feels comfortable... or stay with your own rhythm. [
 You can pause... or stop... whenever you need.
 ```
 
-Othership was reviewed only as a public UI/UX and immersive-sound reference. Its marketing claims are not adopted. No stock wellness photos are used. Source licensing and any future commercial content licensing remain the owner's decisions.
+### License and attribution
+
+The files were generated on ElevenLabs’ Free plan. The owner intends flow to be free and noncommercial, without monetization. The content title **guidance · elevenlabs.io** appears with narration captions and in Source Notes. The [publishing policy](https://help.elevenlabs.io/hc/en-us/articles/13313564601361-Can-I-publish-the-content-I-generate-on-the-platform) permits noncommercial sharing with title attribution; see also the [terms](https://elevenlabs.io/terms-of-use), checked October 1, 2026. Free app pricing alone does not establish a commercial-use license. These recordings are not offered under an open-source license; commercial reuse requires separately licensed recordings.
+
+Othership was a public UI/UX reference only. Source licensing and future commercial content licensing remain the owner’s decisions.

@@ -5,331 +5,202 @@ import XCTest
 @testable import Flow
 #endif
 
-@MainActor private final class FakeClock: MonotonicTimeSource {
-    var now: TimeInterval = 0
-    func advance(_ duration: TimeInterval) { now += duration }
-}
-
-@MainActor private final class FakeAudio: SessionAudio {
+@MainActor final class FakeClock: MonotonicTimeSource { var now: TimeInterval = 0 }
+@MainActor final class FakeAudio: SessionAudio {
     var onInterruption: ((String) -> Void)?
-    var starts = 0
-    var stops = 0
-    var tones: [SessionDefinition.Phase.Kind] = []
-    var speeches = 0
-    var failAmbient = false
-    var failCue = false
-    var failSpeech = false
-    var soundPlaying = false
-    var speechPlaying = false
-    var noVoice = false
+    var onFinish: (() -> Void)?
+    var onRemotePause: (() -> Void)?
+    var onRemoteResume: (() -> Void)?
+    var onRemoteStop: (() -> Void)?
+    var playing = false
+    var prepared = 0
+    var plays: [Double] = []
+    var fail = false
+    var muted = false
     enum Failure: Error { case failed }
-    func startAmbient(preferences: Preferences) throws {
-        if failAmbient { throw Failure.failed }
-        starts += 1
-        soundPlaying = true
+    func prepare(definition: SessionDefinition, preferences: Preferences) async throws {
+        if fail { throw Failure.failed }; prepared += 1
     }
-    func cue(_ kind: SessionDefinition.Phase.Kind, volume: Float) throws {
-        if failCue { throw Failure.failed }
-        tones.append(kind)
+    func play(from time: TimeInterval) throws {
+        if fail { throw Failure.failed }; playing = true; plays.append(time)
     }
-    func setVolumes(ambient: Float, cue: Float) {}
-    func stopSound() { soundPlaying = false }
-    func stopAll() { stops += 1; soundPlaying = false; speechPlaying = false }
-    func playIntroduction() throws -> String? {
-        if failSpeech { throw Failure.failed }
-        if noVoice { return "introduction audio unavailable" }
-        speeches += 1
-        speechPlaying = true
-        return nil
-    }
+    func pause() { playing = false }
+    func setMuted(_ muted: Bool) { self.muted = muted }
+    func stopAll() { playing = false }
 }
 
 @MainActor final class FlowCoreTests: XCTestCase {
-    private func definition(_ duration: Double = 120) throws -> SessionDefinition {
-        try SessionDefinition(id: "test", title: "test session", detail: "original description",
-                              duration: duration, contentRevision: 1,
-                              phases: [.init(kind: .inhale, duration: 4), .init(kind: .exhale, duration: 4)])
-    }
-
-    private func store() -> SessionStore {
-        SessionStore(defaults: UserDefaults(suiteName: "flow.tests.\(UUID().uuidString)")!)
-    }
-
-    private func harness(_ duration: Double = 120, paced: Bool = true) throws -> (SessionCoordinator, FakeClock, FakeAudio, SessionStore) {
-        let clock = FakeClock()
-        let audio = FakeAudio()
-        let storage = store()
-        let engine = SessionEngine(definition: try definition(duration), mode: paced ? .paced : .natural, clock: clock)
-        let coordinator = SessionCoordinator(engine: engine, audio: audio, store: storage)
-        coordinator.start()
-        coordinator.resume(automaticallyRefresh: false)
+    private func store() -> SessionStore { SessionStore(defaults: UserDefaults(suiteName: "flow.tests.\(UUID())")!) }
+    private func harness(practice: Practice = .openAwareness, minutes: Int = 2, breathing: BreathingMode = .paced) async throws -> (SessionCoordinator, FakeClock, FakeAudio, SessionStore) {
+        let clock = FakeClock(), audio = FakeAudio(), storage = store()
+        let definition = try SessionDefinition(practice: practice, minutes: minutes, breathing: breathing)
+        let coordinator = SessionCoordinator(engine: SessionEngine(definition: definition, clock: clock), audio: audio, store: storage)
+        await coordinator.prepareAndStart(automaticallyRefresh: false)
         return (coordinator, clock, audio, storage)
     }
-
-    func testBundledDefinitionsContainBothDurationsAndRevisions() async throws {
-        #if os(iOS)
-        let data = try Data(contentsOf: XCTUnwrap(Bundle.main.url(forResource: "sessions", withExtension: "json")))
-        #else
-        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
-        let data = try Data(contentsOf: root.appendingPathComponent("Flow/Resources/sessions.json"))
-        #endif
-        let definitions = try SessionDefinition.load(data: data)
-        XCTAssertEqual(definitions.map(\.duration), [120, 300])
-        XCTAssertEqual(definitions.map(\.contentRevision), [1, 1])
-        XCTAssertEqual(definitions.map(\.id), ["small-pause", "quiet-five"])
-    }
-
-    func testRejectsNonpositiveNonfiniteAndExcessiveDurations() async throws {
-        for duration in [0.0, -1, .infinity, .nan, 301] { XCTAssertThrowsError(try definition(duration)) }
-    }
-
-    func testRejectsHoldsMalformedPhasesAndUnknownFields() async throws {
-        let valid = try JSONEncoder().encode([definition()])
-        let text = String(decoding: valid, as: UTF8.self)
-        for invalid in [
-            text.replacingOccurrences(of: "inhale", with: "hold"),
-            text.replacingOccurrences(of: "exhale", with: "rapid"),
-            text.replacingOccurrences(of: "\"duration\":4", with: "\"duration\":0"),
-            text.replacingOccurrences(of: "\"duration\":4", with: "\"duration\":3"),
-            text.replacingOccurrences(of: "\"contentRevision\":1", with: "\"contentRevision\":0"),
-            text.replacingOccurrences(of: "\"kind\":", with: "\"hold\":2,\"kind\":"),
-            text.replacingOccurrences(of: "\"contentRevision\":", with: "\"customProtocol\":true,\"contentRevision\":")
-        ] { XCTAssertThrowsError(try SessionDefinition.load(data: Data(invalid.utf8))) }
-        XCTAssertThrowsError(try SessionDefinition.load(data: Data("[]".utf8)))
-        XCTAssertThrowsError(try SessionDefinition.load(data: JSONEncoder().encode([definition(), definition()])))
-        XCTAssertThrowsError(try SessionDefinition(id: "x", title: "x", detail: "x", duration: 120, contentRevision: 1, phases: []))
-    }
-
-    func testExactPhaseBoundaries() async throws {
-        let (coordinator, clock, _, _) = try harness()
-        let engine = coordinator.engine
-        XCTAssertEqual(engine.phase?.kind, .inhale)
-        clock.advance(3.999); coordinator.tick()
-        XCTAssertEqual(engine.phase?.kind, .inhale)
-        clock.advance(0.001); coordinator.tick()
-        XCTAssertEqual(engine.phase?.kind, .exhale)
-        XCTAssertEqual(engine.phase?.progress, 0)
-        clock.advance(4); coordinator.tick()
-        XCTAssertEqual(engine.phase?.kind, .inhale)
-        XCTAssertEqual(engine.phase?.sequence, 2)
-    }
-
-    func testDelayedRefreshDerivesPhaseWithoutDriftOrStaleTones() async throws {
-        let (coordinator, clock, audio, _) = try harness()
-        clock.advance(29.75); coordinator.tick()
-        XCTAssertEqual(coordinator.engine.elapsed, 29.75)
-        XCTAssertEqual(coordinator.engine.phase?.kind, .exhale)
-        XCTAssertEqual(coordinator.engine.phase?.progress, 1.75 / 4)
-        XCTAssertEqual(audio.tones, [.inhale])
-        clock.advance(2.25); coordinator.tick()
-        XCTAssertEqual(audio.tones, [.inhale, .inhale])
-    }
-
-    func testBothDurationsCompleteOnceAndClampLateUpdates() async throws {
-        for duration in [120.0, 300.0] {
-            let (coordinator, clock, audio, storage) = try harness(duration)
-            clock.advance(duration - 0.001); coordinator.tick()
-            XCTAssertEqual(coordinator.engine.state, .running)
-            XCTAssertTrue(storage.history.isEmpty)
-            clock.advance(22); coordinator.tick()
-            XCTAssertEqual(coordinator.engine.state, .completed)
-            XCTAssertEqual(coordinator.engine.elapsed, duration)
-            XCTAssertFalse(audio.soundPlaying)
-            for _ in 0..<5 { coordinator.tick(); coordinator.stop(); storage.recordCompletion(of: coordinator.engine, at: Date()) }
-            XCTAssertEqual(storage.history.count, 1)
-            XCTAssertEqual(storage.history[0].activeDuration, duration)
-            XCTAssertEqual(storage.history[0].runID, coordinator.engine.runID)
-            XCTAssertEqual(storage.history[0].sessionID, "test")
-        }
-    }
-
-    func testPauseFreezesTimeAndResumeRestartsInhaleWithoutDiscardingActiveTime() async throws {
-        let (coordinator, clock, audio, storage) = try harness()
-        clock.advance(5.5); coordinator.pause()
-        XCTAssertEqual(coordinator.engine.elapsed, 5.5)
-        XCTAssertFalse(audio.soundPlaying)
-        clock.advance(900); coordinator.tick()
-        XCTAssertEqual(coordinator.engine.elapsed, 5.5)
-        XCTAssertTrue(storage.history.isEmpty)
-        coordinator.resume(automaticallyRefresh: false)
-        XCTAssertEqual(coordinator.engine.phase?.kind, .inhale)
-        XCTAssertEqual(coordinator.engine.phase?.progress, 0)
-        XCTAssertEqual(audio.tones, [.inhale, .inhale])
-        clock.advance(4); coordinator.tick()
-        XCTAssertEqual(coordinator.engine.elapsed, 9.5)
-        XCTAssertEqual(coordinator.engine.phase?.kind, .exhale)
-        clock.advance(110.5); coordinator.tick()
-        XCTAssertEqual(coordinator.engine.state, .completed)
-        XCTAssertEqual(storage.history.count, 1)
-    }
-
-    func testAllInterruptionsFreezeAndNeverAutoResume() async throws {
-        for event in 0..<4 {
-            let (coordinator, clock, audio, storage) = try harness()
-            clock.advance(7)
-            switch event {
-            case 0: coordinator.appBecameInactive()
-            case 1: coordinator.routeDisconnected()
-            case 2: coordinator.mediaServicesReset()
-            default: audio.onInterruption?("interrupted")
+    func testEveryPracticeDurationAndGuidanceHasContiguousValidSegments() async throws {
+        for practice in Practice.allCases {
+            for minutes in SessionDefinition.minuteOptions {
+                for guidance in GuidanceLevel.allCases {
+                    let d = try SessionDefinition(practice: practice, minutes: minutes, guidance: guidance, breathing: .paced)
+                    XCTAssertEqual(d.segments.reduce(0) { $0 + $1.duration }, Double(minutes * 60), accuracy: 0.001)
+                    var end = 0.0
+                    for s in d.segments {
+                        XCTAssertGreaterThan(s.duration, 0); XCTAssertEqual(s.start, end, accuracy: 0.001); end = s.end
+                        XCTAssertEqual(d.segment(at: s.start).stage, s.stage)
+                        XCTAssertEqual(d.segment(at: s.end - 0.001).stage, s.stage)
+                    }
+                    XCTAssertEqual(d.segment(at: d.duration).stage, d.segments.last?.stage)
+                    for e in d.narration { XCTAssertGreaterThanOrEqual(e.time, 0); XCTAssertLessThan(e.time, d.duration) }
+                    for pair in zip(d.narration, d.narration.dropFirst()) { XCTAssertGreaterThan(pair.1.time - pair.0.time, 15) }
+                }
             }
-            XCTAssertEqual(coordinator.engine.state, .interrupted)
-            XCTAssertEqual(coordinator.engine.elapsed, 7)
-            XCTAssertNotNil(coordinator.engine.interruptionReason)
-            clock.advance(1000); coordinator.tick()
-            XCTAssertEqual(coordinator.engine.elapsed, 7)
-            XCTAssertEqual(coordinator.engine.state, .interrupted)
-            XCTAssertFalse(audio.soundPlaying)
-            XCTAssertTrue(storage.history.isEmpty)
-            coordinator.resume(automaticallyRefresh: false)
-            XCTAssertEqual(coordinator.engine.phase?.kind, .inhale)
-            XCTAssertEqual(coordinator.engine.elapsed, 7)
         }
     }
-
-    func testStopAndCancellationNeverRecordACompletion() async throws {
-        for shouldCancel in [true, false] {
-            let (coordinator, clock, audio, storage) = try harness()
-            clock.advance(23.5)
-            if shouldCancel { coordinator.cancel() } else { coordinator.stop() }
-            coordinator.stop(); coordinator.tick()
-            storage.recordCompletion(of: coordinator.engine, at: Date())
-            XCTAssertEqual(coordinator.engine.state, .stopped)
-            XCTAssertEqual(coordinator.engine.elapsed, 23.5)
-            XCTAssertTrue(storage.history.isEmpty)
-            XCTAssertFalse(audio.soundPlaying)
-            coordinator.resume(automaticallyRefresh: false)
-            XCTAssertEqual(coordinator.engine.state, .stopped)
+    func testInvalidDurationsRejected() async {
+        for value in [-1, 0, 1, 3, 31, 60, Int.max] { XCTAssertThrowsError(try SessionDefinition(minutes: value)) }
+    }
+    func testPureSilenceOverridesGuidanceAndPacing() async throws {
+        let d = try SessionDefinition(practice: .silence, guidance: .full, breathing: .paced)
+        XCTAssertEqual(d.guidance, .silent); XCTAssertEqual(d.breathing, .natural)
+        XCTAssertTrue(d.narration.isEmpty); XCTAssertEqual(d.segments.count, 1)
+        XCTAssertEqual(d.ambience(at: 5), 0)
+    }
+    func testSilentGuidanceOnlyHasOpeningAndFullAddsPrompts() async throws {
+        let silent = try SessionDefinition(minutes: 30, guidance: .silent)
+        XCTAssertEqual(silent.narration.map(\.clip), ["introduction"])
+        let full = try SessionDefinition(minutes: 30, guidance: .full)
+        let minimal = try SessionDefinition(minutes: 30, guidance: .minimal)
+        XCTAssertGreaterThan(full.narration.count, minimal.narration.count)
+        let open = try XCTUnwrap(full.segments.first(where: { $0.stage == .open }))
+        XCTAssertFalse(full.narration.contains(where: { $0.time > open.start + open.duration * 0.4 && $0.time < open.end }))
+        XCTAssertEqual(full.ambience(at: open.start + 11), 0)
+        let short = try SessionDefinition(minutes: 10)
+        XCTAssertGreaterThan(open.duration, short.segments.first(where: { $0.stage == .open })!.duration)
+    }
+    func testPacingOnlyExistsDuringSettleAndStopsAtExpand() async throws {
+        let (c, clock, _, _) = try await harness()
+        XCTAssertNil(c.engine.phase)
+        clock.now = 35; c.tick()
+        XCTAssertEqual(c.engine.phase?.kind, .inhale)
+        clock.now = 39.999; c.tick(); XCTAssertEqual(c.engine.phase?.kind, .inhale)
+        clock.now = 40; c.tick(); XCTAssertEqual(c.engine.phase?.kind, .exhale)
+        clock.now = 45; c.tick(); XCTAssertEqual(c.engine.phase?.sequence, 2)
+        clock.now = 59; c.tick(); XCTAssertNil(c.engine.phase)
+        XCTAssertEqual(c.engine.segment.stage, .expand)
+    }
+    func testDelayedRefreshSkipsStaleHapticsAndDoesNotDrift() async throws {
+        let (c, clock, _, _) = try await harness()
+        clock.now = 47.5; c.tick()
+        XCTAssertEqual(c.engine.elapsed, 47.5)
+        XCTAssertEqual(c.engine.phase?.progress, 0.5)
+        clock.now = 106; c.tick()
+        XCTAssertEqual(c.engine.segment.stage, .returning)
+        XCTAssertNil(c.engine.phase)
+    }
+    func testPauseAndResumePreserveExactTimelinePosition() async throws {
+        let (c, clock, audio, _) = try await harness()
+        clock.now = 42.5; c.pause()
+        XCTAssertEqual(c.engine.elapsed, 42.5); XCTAssertFalse(audio.playing)
+        clock.now = 1000; c.tick(); XCTAssertEqual(c.engine.elapsed, 42.5)
+        c.resume(automaticallyRefresh: false)
+        XCTAssertEqual(audio.plays, [0, 42.5])
+        clock.now += 2.5; c.tick()
+        XCTAssertEqual(c.engine.elapsed, 45); XCTAssertEqual(c.engine.phase?.kind, .inhale)
+    }
+    func testScreenLockAndForegroundRefreshDoNotPause() async throws {
+        let (c, clock, audio, _) = try await harness()
+        clock.now = 100; c.appBecameActive()
+        XCTAssertEqual(c.engine.elapsed, 100); XCTAssertTrue(audio.playing)
+        XCTAssertEqual(c.engine.state, .running)
+    }
+    func testInterruptionsRequireExplicitResume() async throws {
+        let (c, clock, audio, _) = try await harness()
+        clock.now = 9; audio.onInterruption?("headphones removed")
+        XCTAssertEqual(c.engine.state, .interrupted); XCTAssertEqual(c.engine.elapsed, 9)
+        clock.now = 2000; c.appBecameActive()
+        XCTAssertEqual(c.engine.elapsed, 9); XCTAssertFalse(audio.playing)
+        c.resume(automaticallyRefresh: false); XCTAssertTrue(audio.playing)
+        XCTAssertEqual(audio.plays.last, 9)
+    }
+    func testAllDurationsCompleteOnceAndBellTailCanFinish() async throws {
+        for minutes in SessionDefinition.minuteOptions {
+            let (c, clock, audio, storage) = try await harness(minutes: minutes)
+            clock.now = Double(minutes * 60) - 0.01; c.tick(); XCTAssertEqual(c.engine.state, .running)
+            clock.now += 20; c.tick()
+            XCTAssertEqual(c.engine.state, .completed); XCTAssertEqual(c.engine.elapsed, Double(minutes * 60))
+            XCTAssertTrue(audio.playing, "coordinator must not cut off the closing bell")
+            audio.onFinish?(); c.tick(); c.stop()
+            XCTAssertEqual(storage.history.count, 1); XCTAssertFalse(audio.playing)
         }
     }
-
-    func testAmbientFailurePausesAndCanRecoverWithSoundDisabled() async throws {
+    func testBackgroundAudioCompletionRecordsWithoutUIRefresh() async throws {
+        let (c, _, audio, storage) = try await harness()
+        audio.onFinish?()
+        XCTAssertEqual(c.engine.state, .completed); XCTAssertEqual(c.engine.elapsed, 120)
+        XCTAssertEqual(storage.history.count, 1)
+        audio.onFinish?(); XCTAssertEqual(storage.history.count, 1)
+    }
+    func testEarlyStopAndLateCallbackNeverRecordCompletion() async throws {
+        let (c, clock, audio, storage) = try await harness()
+        clock.now = 14; c.stop(); audio.onFinish?(); clock.now = 1000; c.tick()
+        XCTAssertEqual(c.engine.state, .stopped); XCTAssertEqual(c.engine.elapsed, 14)
+        XCTAssertTrue(storage.history.isEmpty); XCTAssertFalse(audio.playing)
+    }
+    func testAudioFailureDoesNotAdvanceSessionAndCanRetry() async throws {
         let clock = FakeClock(), audio = FakeAudio(), storage = store()
-        audio.failAmbient = true
-        let coordinator = SessionCoordinator(engine: SessionEngine(definition: try definition(), clock: clock), audio: audio, store: storage)
-        coordinator.start(); coordinator.resume(automaticallyRefresh: false)
-        XCTAssertEqual(coordinator.engine.state, .interrupted)
-        clock.advance(300); coordinator.tick()
-        XCTAssertEqual(coordinator.engine.elapsed, 0)
-        XCTAssertFalse(audio.soundPlaying)
-        coordinator.setSound(false); coordinator.resume(automaticallyRefresh: false)
-        XCTAssertEqual(coordinator.engine.state, .running)
-        XCTAssertFalse(audio.soundPlaying)
+        audio.fail = true
+        let c = SessionCoordinator(engine: SessionEngine(definition: try SessionDefinition(), clock: clock), audio: audio, store: storage)
+        await c.prepareAndStart(automaticallyRefresh: false)
+        XCTAssertEqual(c.engine.state, .interrupted); XCTAssertEqual(c.engine.elapsed, 0)
+        audio.fail = false; c.resume(automaticallyRefresh: false)
+        for _ in 0..<10 { await Task.yield() }
+        XCTAssertEqual(c.engine.state, .running)
     }
-
-    func testCueFailureStopsAudioAndPausesVisual() async throws {
-        let (coordinator, clock, audio, storage) = try harness()
-        audio.failCue = true
-        clock.advance(4); coordinator.tick()
-        XCTAssertEqual(coordinator.engine.state, .interrupted)
-        XCTAssertFalse(audio.soundPlaying)
+    func testNaturalOverrideAndMuteAreIndependentOfTimer() async throws {
+        let (c, clock, audio, _) = try await harness()
+        clock.now = 38; c.tick(); XCTAssertNotNil(c.engine.phase)
+        c.useNaturalBreathing(); XCTAssertNil(c.engine.phase)
+        c.setMuted(true); XCTAssertTrue(audio.muted); XCTAssertEqual(c.engine.state, .running)
+        clock.now = 50; c.tick(); XCTAssertEqual(c.engine.elapsed, 50)
+        c.setMuted(false); XCTAssertFalse(audio.muted)
+    }
+    func testRemoteCommandsPauseResumeAndStop() async throws {
+        let (c, clock, audio, storage) = try await harness()
+        clock.now = 5; audio.onRemotePause?(); XCTAssertEqual(c.engine.state, .paused)
+        audio.onRemoteResume?(); XCTAssertEqual(c.engine.state, .running)
+        audio.onRemoteStop?(); XCTAssertEqual(c.engine.state, .stopped)
         XCTAssertTrue(storage.history.isEmpty)
     }
-
-    func testNaturalModeHasNoPhaseCuesAndCanBeSelectedMidSession() async throws {
-        let (coordinator, clock, audio, _) = try harness()
-        clock.advance(3); coordinator.setMode(.natural)
-        XCTAssertNil(coordinator.engine.phase)
-        clock.advance(13); coordinator.tick()
-        XCTAssertEqual(coordinator.engine.elapsed, 16)
-        XCTAssertEqual(audio.tones, [.inhale])
-        let (natural, _, naturalAudio, _) = try harness(paced: false)
-        XCTAssertEqual(natural.engine.mode, .natural)
-        XCTAssertTrue(naturalAudio.tones.isEmpty)
-    }
-
-    func testIntroductionIsUntimedAndPauseStopsSpeechWithoutReplay() async throws {
-        let storage = store(), clock = FakeClock(), audio = FakeAudio()
-        storage.preferences.spokenIntroduction = true
-        storage.preferences.sound = false
-        let coordinator = SessionCoordinator(engine: SessionEngine(definition: try definition(), clock: clock), audio: audio, store: storage)
-        coordinator.start(); coordinator.start()
-        XCTAssertEqual(audio.speeches, 1)
-        clock.advance(30); coordinator.tick()
-        XCTAssertEqual(coordinator.engine.elapsed, 0)
-        coordinator.appBecameInactive()
-        XCTAssertFalse(audio.speechPlaying)
-        clock.advance(300); coordinator.resume(automaticallyRefresh: false)
-        XCTAssertEqual(audio.speeches, 1)
-        XCTAssertEqual(coordinator.engine.elapsed, 0)
-        XCTAssertEqual(coordinator.engine.state, .running)
-        XCTAssertEqual(audio.starts, 0)
-    }
-
-    func testMissingNarrationHasReadableFallbackAndNoTimedProgress() async throws {
-        let storage = store(), clock = FakeClock(), audio = FakeAudio()
-        storage.preferences.spokenIntroduction = true
-        audio.noVoice = true
-        let coordinator = SessionCoordinator(engine: SessionEngine(definition: try definition(), clock: clock), audio: audio, store: storage)
-        coordinator.start()
-        XCTAssertNotNil(coordinator.notice)
-        XCTAssertEqual(coordinator.engine.state, .introduction)
-        XCTAssertEqual(coordinator.engine.elapsed, 0)
-        coordinator.resume(automaticallyRefresh: false)
-        XCTAssertEqual(coordinator.engine.state, .running)
-    }
-
-    func testDefaultsAndPreferencesSurviveRelaunch() async throws {
-        let defaults = UserDefaults(suiteName: "flow.relaunch.\(UUID().uuidString)")!
+    func testLegacyPreferencesMigrateWithoutLosingHistoryOrSafety() async throws {
+        let defaults = UserDefaults(suiteName: "flow.migrate.\(UUID())")!
+        defaults.set(Data(#"{"sound":false,"spokenIntroduction":true,"haptics":true,"ambientVolume":0.2,"cueVolume":0.4,"hasReadSafety":true}"#.utf8), forKey: "flow.preferences.v1")
         let storage = SessionStore(defaults: defaults)
-        XCTAssertTrue(storage.preferences.sound)
-        XCTAssertFalse(storage.preferences.spokenIntroduction)
-        XCTAssertFalse(storage.preferences.haptics)
-        XCTAssertFalse(storage.preferences.hasReadSafety)
-        storage.preferences.sound = false
-        storage.preferences.spokenIntroduction = true
-        storage.preferences.haptics = true
-        storage.preferences.hasReadSafety = true
-        storage.preferences.ambientVolume = 0.15
-        storage.preferences.cueVolume = 0.5
-        let relaunched = SessionStore(defaults: defaults)
-        XCTAssertEqual(storage.preferences, relaunched.preferences)
-        let engine = SessionEngine(definition: try definition(), clock: FakeClock())
-        XCTAssertEqual(engine.mode, .natural)
+        XCTAssertFalse(storage.preferences.sound); XCTAssertTrue(storage.preferences.haptics)
+        XCTAssertTrue(storage.preferences.hasReadSafety); XCTAssertEqual(storage.preferences.minutes, 10)
+        storage.preferences.practice = .silence; storage.preferences.minutes = 30; storage.preferences.guidance = .full
+        XCTAssertEqual(SessionStore(defaults: defaults).preferences, storage.preferences)
+        storage.preferences.minutes = -50
+        XCTAssertEqual(SessionStore(defaults: defaults).preferences.minutes, 10)
     }
-
-    func testHistoryRelaunchDeduplicationAndDeletionPreservePreferencesAndContent() async throws {
-        let defaults = UserDefaults(suiteName: "flow.history.\(UUID().uuidString)")!
+    func testHistoryRelaunchDedupAndDeletion() async throws {
+        let defaults = UserDefaults(suiteName: "flow.history.\(UUID())")!
         let storage = SessionStore(defaults: defaults), clock = FakeClock()
-        let content = try definition()
-        let engine = SessionEngine(definition: content, clock: clock)
-        engine.beginIntroduction(); engine.beginRunning(); clock.advance(120); engine.refresh()
+        let engine = SessionEngine(definition: try SessionDefinition(minutes: 2), clock: clock)
+        engine.prepare(); engine.beginRunning(); clock.now = 120; engine.refresh()
         storage.recordCompletion(of: engine, at: Date(timeIntervalSince1970: 42))
-        let relaunched = SessionStore(defaults: defaults)
-        relaunched.recordCompletion(of: engine, at: Date())
-        XCTAssertEqual(relaunched.history.count, 1)
-        XCTAssertEqual(relaunched.history[0].completedAt, Date(timeIntervalSince1970: 42))
-        relaunched.preferences.haptics = true
-        relaunched.deleteHistory()
+        let reloaded = SessionStore(defaults: defaults)
+        reloaded.recordCompletion(of: engine, at: Date())
+        XCTAssertEqual(reloaded.history.count, 1); XCTAssertEqual(reloaded.history[0].activeDuration, 120)
+        reloaded.preferences.haptics = true; reloaded.deleteHistory()
         XCTAssertTrue(SessionStore(defaults: defaults).history.isEmpty)
         XCTAssertTrue(SessionStore(defaults: defaults).preferences.haptics)
-        XCTAssertEqual(engine.definition, content)
     }
-
-    func testLateCallbacksDoNotRecreateDeletedHistory() async throws {
-        let (coordinator, clock, _, storage) = try harness()
-        clock.advance(120); coordinator.tick()
-        storage.deleteHistory()
-        coordinator.tick(); coordinator.stop(); coordinator.cancel()
-        XCTAssertTrue(storage.history.isEmpty)
-    }
-
-    func testRepeatedStartsDoNotStackAndNewRunsHaveUniqueIDs() async throws {
-        let (coordinator, _, audio, _) = try harness()
-        coordinator.start(); coordinator.resume(automaticallyRefresh: false)
-        XCTAssertEqual(audio.starts, 1)
-        let (next, _, _, _) = try harness()
-        XCTAssertNotEqual(coordinator.engine.runID, next.engine.runID)
-    }
-
-    func testCancelledObserverCannotCompleteLater() async throws {
-        let (coordinator, clock, _, storage) = try harness()
-        coordinator.pause()
-        coordinator.resume()
-        coordinator.cancel()
-        clock.advance(1000)
-        try await Task.sleep(for: .milliseconds(130))
-        XCTAssertEqual(coordinator.engine.state, .stopped)
-        XCTAssertTrue(storage.history.isEmpty)
+    func testRepeatedStartAndCancelReleaseCallbacks() async throws {
+        let (c, clock, audio, storage) = try await harness()
+        c.start(); c.resume(); XCTAssertEqual(audio.prepared, 1)
+        c.cancel(); clock.now = 1000; c.tick()
+        XCTAssertNil(audio.onInterruption); XCTAssertNil(audio.onRemoteResume)
+        XCTAssertFalse(audio.playing); XCTAssertTrue(storage.history.isEmpty)
     }
 }

@@ -10,22 +10,21 @@ struct SettingsView: View {
         NavigationStack {
             Form {
                 Section {
-                    Toggle("ambient sound & phase tones", isOn: $store.preferences.sound)
+                    Toggle("ambient sound", isOn: $store.preferences.sound)
                     VStack(alignment: .leading, spacing: 8) {
                         Text("ambient volume")
                         Slider(value: $store.preferences.ambientVolume, in: 0...1)
                             .accessibilityLabel("ambient volume")
                     }
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("phase tone volume")
+                        Text("bell volume")
                         Slider(value: $store.preferences.cueVolume, in: 0...1)
-                            .accessibilityLabel("phase tone volume")
+                            .accessibilityLabel("bell volume")
                     }
-                    Toggle("spoken introduction", isOn: $store.preferences.spokenIntroduction)
                     Toggle("gentle haptics", isOn: $store.preferences.haptics)
                 } header: { Text("make it yours") }
                 footer: {
-                    Text("the spoken introduction plays offline and is separate from ambient sound. you can also read it on screen. phase tones and haptics accompany gentle pace only. haptics depend on your device.")
+                    Text("guidance and bells play offline, including with the screen locked. haptics accompany gentle pacing while the app is on screen and depend on your device.")
                 }
 
                 Section {
@@ -35,7 +34,7 @@ struct SettingsView: View {
                         DisclosureGroup("completed sessions (\(store.history.count))") {
                             ForEach(store.history.reversed()) { record in
                                 VStack(alignment: .leading, spacing: 6) {
-                                    Text(record.sessionID == "small-pause" ? "a small pause" : "a quiet five")
+                                    Text(Practice(rawValue: record.sessionID)?.title ?? (record.sessionID == "small-pause" ? "a small pause" : "a quiet five"))
                                     Text("\(record.completedAt.formatted(date: .abbreviated, time: .shortened)) · \(timeText(record.activeDuration))")
                                         .font(.footnote).foregroundStyle(FlowStyle.muted)
                                 }.padding(.vertical, 4)
@@ -75,9 +74,9 @@ struct SourceNotesView: View {
             VStack(alignment: .leading, spacing: 24) {
                 Text("a few notes on flow.").font(.system(.largeTitle, design: .serif))
                 note("the experience", "Othership’s public app experience informed the atmosphere and focus on sound. flow’s interface, vector artwork, session names, guidance, and synthesized audio are original. no Othership recordings or subscription content are included.")
-                note("the breathing", "NHS guidance supports gentle, comfortable breathing without forcing and optional counting. flow’s 4-second in / 4-second out cue is a product choice, not an NHS protocol or a clinical recommendation. natural breathing is the default.")
-                note("the sound", "one original ambient bed and two soft phase tones were synthesized locally. the optional introduction is an AI-generated recording using Sarah’s voice from ElevenLabs. all audio plays offline.")
-                note(Guidance.introductionTitle, "original words, voiced with elevenlabs.io. shared for noncommercial use with attribution.")
+                note("the breathing", "NHS guidance supports gentle, comfortable breathing without forcing and optional counting. flow’s 5-second in / 5-second out cue is a product choice, not an NHS protocol or a clinical recommendation. natural breathing is the default.")
+                note("the sound", "the ambient bed and soft bell were synthesized locally. original guidance uses Brian’s AI-generated voice from ElevenLabs. all recordings play offline.")
+                note(Guidance.introductionTitle, "original words, voiced with Brian from elevenlabs.io. shared for noncommercial use with attribution.")
                 note("the boundaries", "flow is for general wellness. it offers no diagnosis, treatment, breath tests, breath holds, or intense breathing routines. follow your comfort, and stop whenever you want.")
                 VStack(alignment: .leading, spacing: 12) {
                     Text("references · internet needed to open").font(.footnote).foregroundStyle(FlowStyle.muted)

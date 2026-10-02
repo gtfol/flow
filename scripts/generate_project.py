@@ -48,7 +48,7 @@ def reference(path):
 
 
 sources = [path.relative_to(ROOT) for path in sorted((ROOT / "Flow").rglob("*.swift"))]
-resources = [Path("Flow/Resources") / name for name in ["sessions.json", "ambient.wav", "inhale.wav", "exhale.wav", "introduction.mp3", "PrivacyInfo.xcprivacy", "Assets.xcassets"]]
+resources = [Path("Flow/Resources") / name for name in ["ambient.wav", "bell.wav", "introduction.mp3", "settle.mp3", "pace.mp3", "body.mp3", "sound.mp3", "thoughts.mp3", "gentle.mp3", "open.mp3", "return.mp3", "PrivacyInfo.xcprivacy", "Assets.xcassets"]]
 refs = {str(path): reference(path) for path in sources + resources}
 source_builds = [add(str(path) + "build", "PBXBuildFile", fileRef=refs[str(path)]) for path in sources]
 resource_builds = [add(str(path) + "build", "PBXBuildFile", fileRef=refs[str(path)]) for path in resources]
@@ -63,6 +63,7 @@ target_config = configs("target", {
     "PRODUCT_NAME": "flow", "PRODUCT_MODULE_NAME": "Flow", "PRODUCT_BUNDLE_IDENTIFIER": "dev.gtfol.flow",
     "GENERATE_INFOPLIST_FILE": "YES", "INFOPLIST_KEY_CFBundleDisplayName": "flow",
     "INFOPLIST_KEY_ITSAppUsesNonExemptEncryption": "NO",
+    "INFOPLIST_FILE": "Flow/Info.plist",
     "INFOPLIST_KEY_LSApplicationCategoryType": "public.app-category.healthcare-fitness",
     "INFOPLIST_KEY_UILaunchScreen_Generation": "YES", "INFOPLIST_KEY_UIApplicationSceneManifest_Generation": "YES",
     "INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents": "YES",
@@ -70,7 +71,7 @@ target_config = configs("target", {
     "INFOPLIST_KEY_UIUserInterfaceStyle": "Dark", "TARGETED_DEVICE_FAMILY": "1",
     "SUPPORTED_PLATFORMS": "iphoneos iphonesimulator", "SUPPORTS_MACCATALYST": "NO",
     "ASSETCATALOG_COMPILER_APPICON_NAME": "AppIcon", "CODE_SIGN_STYLE": "Automatic", "DEVELOPMENT_TEAM": "J59ZSG67SJ",
-    "CURRENT_PROJECT_VERSION": "3", "MARKETING_VERSION": "0.1.0",
+    "CURRENT_PROJECT_VERSION": "4", "MARKETING_VERSION": "0.2.0",
     "SWIFT_EMIT_LOC_STRINGS": "YES", "LD_RUNPATH_SEARCH_PATHS": ["$(inherited)", "@executable_path/Frameworks"]
 })
 target = add("target", "PBXNativeTarget", name="Flow", productName="flow", productReference=app,

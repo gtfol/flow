@@ -1,181 +1,142 @@
 import AVFoundation
-import UIKit
+import MediaPlayer
 
 @MainActor final class AudioController: NSObject, SessionAudio, AVAudioPlayerDelegate {
     var onInterruption: ((String) -> Void)?
-    private var ambient: AVAudioPlayer?
-    private var tone: AVAudioPlayer?
-    private var introduction: AVAudioPlayer?
-    private let introductionURL: URL?
+    var onFinish: (() -> Void)?
+    var onRemotePause: (() -> Void)?
+    var onRemoteResume: (() -> Void)?
+    var onRemoteStop: (() -> Void)?
+    private var player: AVAudioPlayer?
+    private var programURL: URL?
+    private var definition: SessionDefinition?
     private var observers: [NSObjectProtocol] = []
-    private var retiringPlayers: [AVAudioPlayer] = []
-    private var fadeTask: Task<Void, Never>?
-    private var sessionActive = false
-    var isIntroductionPlaying: Bool { introduction?.isPlaying == true }
+    private var commands: [(MPRemoteCommand, Any)] = []
+    private var active = false
+    private var muted = false
+    private var needsPlayer = false
+    var isPlaying: Bool { player?.isPlaying == true }
+    var playbackTime: TimeInterval { player?.currentTime ?? 0 }
+    var playbackDuration: TimeInterval { player?.duration ?? 0 }
 
-    init(introductionURL: URL? = Bundle.main.url(forResource: "introduction", withExtension: "mp3")) {
-        self.introductionURL = introductionURL
+    override init() {
         super.init()
         let center = NotificationCenter.default
-        observers.append(center.addObserver(forName: AVAudioSession.interruptionNotification,
-                                             object: nil, queue: .main) { [weak self] notification in
-            let raw = notification.userInfo?[AVAudioSessionInterruptionTypeKey] as? UInt
-            guard raw == AVAudioSession.InterruptionType.began.rawValue else { return }
-            Task { @MainActor [weak self] in
-                self?.onInterruption?("another app interrupted the audio. resume whenever you are ready.")
-            }
+        observers.append(center.addObserver(forName: AVAudioSession.interruptionNotification, object: nil, queue: .main) { [weak self] note in
+            guard note.userInfo?[AVAudioSessionInterruptionTypeKey] as? UInt == AVAudioSession.InterruptionType.began.rawValue else { return }
+            Task { @MainActor [weak self] in self?.onInterruption?("audio was interrupted. resume whenever you’re ready.") }
         })
-        observers.append(center.addObserver(forName: AVAudioSession.routeChangeNotification,
-                                             object: nil, queue: .main) { [weak self] notification in
-            let raw = notification.userInfo?[AVAudioSessionRouteChangeReasonKey] as? UInt
-            guard raw == AVAudioSession.RouteChangeReason.oldDeviceUnavailable.rawValue else { return }
-            Task { @MainActor [weak self] in
-                self?.onInterruption?("your audio output disconnected. check where sound will play before resuming.")
-            }
+        observers.append(center.addObserver(forName: AVAudioSession.routeChangeNotification, object: nil, queue: .main) { [weak self] note in
+            guard note.userInfo?[AVAudioSessionRouteChangeReasonKey] as? UInt == AVAudioSession.RouteChangeReason.oldDeviceUnavailable.rawValue else { return }
+            Task { @MainActor [weak self] in self?.onInterruption?("your audio output disconnected. check where sound will play before resuming.") }
         })
         for name in [AVAudioSession.mediaServicesWereResetNotification, AVAudioSession.mediaServicesWereLostNotification] {
             observers.append(center.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
                 Task { @MainActor [weak self] in
-                    self?.stopAll()
-                    self?.onInterruption?("the audio system restarted. resume to try again, or turn sound off.")
+                    self?.needsPlayer = true
+                    self?.onInterruption?("the audio system restarted. resume when ready.")
                 }
             })
         }
     }
-
     deinit {
         observers.forEach(NotificationCenter.default.removeObserver)
-        fadeTask?.cancel()
+        for (command, token) in commands { command.removeTarget(token) }
+        if let programURL { try? FileManager.default.removeItem(at: programURL) }
     }
-
-    func startAmbient(preferences: Preferences) throws {
-        finishFades()
-        try activate()
-        if let ambient, ambient.isPlaying {
-            ambient.setVolume(preferences.ambientVolume, fadeDuration: 0.2)
-            return
-        }
-        let player = try makePlayer("ambient")
-        player.numberOfLoops = -1
-        player.volume = 0
-        guard player.play() else { throw AudioError.playbackFailed }
-        player.setVolume(preferences.ambientVolume, fadeDuration: 0.8)
-        ambient = player
-    }
-
-    func cue(_ kind: SessionDefinition.Phase.Kind, volume: Float) throws {
-        tone?.stop()
-        let player = try makePlayer(kind == .inhale ? "inhale" : "exhale")
-        player.volume = volume
-        guard player.play() else { throw AudioError.playbackFailed }
-        tone = player
-    }
-
-    func setVolumes(ambient: Float, cue: Float) {
-        self.ambient?.setVolume(ambient, fadeDuration: 0.2)
-        tone?.setVolume(cue, fadeDuration: 0.1)
-    }
-
-    func stopSound() {
-        finishFades()
-        retiringPlayers = [ambient, tone].compactMap { $0 }
-        ambient = nil
-        tone = nil
-        retiringPlayers.forEach { $0.setVolume(0, fadeDuration: 0.08) }
-        // Retain through the short release so dismissal cannot strand an active audio session.
-        fadeTask = Task { [self] in
-            do { try await Task.sleep(for: .milliseconds(90)) } catch { return }
-            finishFades()
-            deactivateIfQuiet()
-        }
-    }
-
-    func stopAll() {
-        introduction?.delegate = nil
-        introduction?.stop()
-        introduction = nil
-        stopSound()
-    }
-
-    func playIntroduction() throws -> String? {
+    func prepare(definition: SessionDefinition, preferences: Preferences) async throws {
         stopAll()
-        finishFades()
-        deactivateIfQuiet()
-        guard let introductionURL else {
-            deactivateIfQuiet()
-            return "the introduction audio is unavailable. the full introduction is here to read."
+        var assets: [String: URL] = [:]
+        for name in Set(definition.narration.map(\.clip)).union(["ambient", "bell"]) {
+            if let url = Bundle.main.url(forResource: name, withExtension: ["ambient", "bell"].contains(name) ? "wav" : "mp3") { assets[name] = url }
         }
-        let player = try AVAudioPlayer(contentsOf: introductionURL)
-        player.delegate = self
-        player.volume = 0.8
-        guard player.prepareToPlay() else { throw AudioError.playbackFailed }
-        try activate()
-        guard player.play() else {
-            deactivateIfQuiet()
-            throw AudioError.playbackFailed
+        let paths = assets
+        let task = Task.detached(priority: .userInitiated) {
+            try SessionAudioRenderer.render(definition: definition, preferences: preferences, assets: paths)
         }
-        introduction = player
-        return nil
+        let url = try await withTaskCancellationHandler(operation: { try await task.value }, onCancel: { task.cancel() })
+        guard !Task.isCancelled else { try? FileManager.default.removeItem(at: url); throw CancellationError() }
+        do {
+            try FileManager.default.setAttributes([.protectionKey: FileProtectionType.completeUntilFirstUserAuthentication], ofItemAtPath: url.path)
+            let value = try AVAudioPlayer(contentsOf: url)
+            guard value.prepareToPlay() else { throw PlaybackError.cannotPlay }
+            value.delegate = self; value.volume = muted ? 0 : 1
+            player = value; programURL = url; self.definition = definition; needsPlayer = false
+        } catch { try? FileManager.default.removeItem(at: url); throw error }
     }
-
-    nonisolated func audioPlayerDecodeErrorDidOccur(_ player: AVAudioPlayer, error: Error?) {
-        Task { @MainActor [weak self] in
-            guard let self, self.isCurrent(player) else { return }
-            self.stopAll()
-            self.onInterruption?("an audio file could not play. resume to retry, or turn sound off.")
+    func play(from time: TimeInterval) throws {
+        if needsPlayer, let programURL {
+            player?.delegate = nil
+            let replacement = try AVAudioPlayer(contentsOf: programURL)
+            guard replacement.prepareToPlay() else { throw PlaybackError.cannotPlay }
+            replacement.delegate = self; replacement.volume = muted ? 0 : 1
+            player = replacement; needsPlayer = false
         }
-    }
-
-    nonisolated func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
-        Task { @MainActor [weak self] in
-            guard let self, self.isCurrent(player) else { return }
-            if self.introduction === player { self.introduction = nil }
-            if self.tone === player { self.tone = nil }
-            if self.ambient === player { self.ambient = nil }
-            player.delegate = nil
-            if !flag {
-                self.stopAll()
-                self.onInterruption?("audio playback stopped unexpectedly. resume to retry, or turn sound off.")
-            }
-            self.deactivateIfQuiet()
-        }
-    }
-
-    private func isCurrent(_ player: AVAudioPlayer) -> Bool {
-        introduction === player || ambient === player || tone === player
-    }
-
-    private func activate() throws {
+        guard let player else { throw PlaybackError.cannotPlay }
         let session = AVAudioSession.sharedInstance()
         try session.setCategory(.playback, mode: .default, options: [])
-        try session.setActive(true)
-        sessionActive = true
+        try session.setActive(true); active = true
+        player.currentTime = min(max(0, time), max(0, player.duration - SessionAudioRenderer.tail))
+        guard player.play() else { releaseSession(); throw PlaybackError.cannotPlay }
+        installCommands(); updateNowPlaying(playing: true)
     }
-
-    private func makePlayer(_ name: String) throws -> AVAudioPlayer {
-        guard let url = Bundle.main.url(forResource: name, withExtension: "wav") else { throw AudioError.missingAsset }
-        let player = try AVAudioPlayer(contentsOf: url)
-        player.delegate = self
-        guard player.prepareToPlay() else { throw AudioError.playbackFailed }
-        return player
+    func pause() { player?.pause(); updateNowPlaying(playing: false); releaseSession() }
+    func setMuted(_ value: Bool) { muted = value; player?.setVolume(value ? 0 : 1, fadeDuration: 0.15) }
+    func stopAll() {
+        player?.delegate = nil; player?.stop(); player = nil
+        if let programURL { try? FileManager.default.removeItem(at: programURL) }
+        programURL = nil
+        for (command, token) in commands { command.removeTarget(token) }
+        commands = []
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
+        releaseSession()
     }
-
-    private func finishFades() {
-        fadeTask?.cancel()
-        fadeTask = nil
-        retiringPlayers.forEach { $0.stop(); $0.delegate = nil }
-        retiringPlayers.removeAll()
-    }
-
-    private func deactivateIfQuiet() {
-        guard ambient == nil, tone == nil, introduction == nil, sessionActive else { return }
-        sessionActive = false
-        do {
-            try AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
-        } catch {
-            onInterruption?("the audio system could not release the session. stop and try again.")
+    nonisolated func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
+        Task { @MainActor [weak self] in
+            guard let self, self.player === player else { return }
+            if flag { self.onFinish?(); self.stopAll() }
+            else { self.onInterruption?("playback stopped unexpectedly. resume to try again.") }
         }
     }
-
-    enum AudioError: Error { case missingAsset, playbackFailed }
+    nonisolated func audioPlayerDecodeErrorDidOccur(_ player: AVAudioPlayer, error: Error?) {
+        Task { @MainActor [weak self] in
+            guard let self, self.player === player else { return }
+            self.onInterruption?("the recording could not play. end the session and try again.")
+        }
+    }
+    private func releaseSession() {
+        guard active else { return }; active = false
+        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+    }
+    private func updateNowPlaying(playing: Bool) {
+        guard let definition, let player else { return }
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = [
+            MPMediaItemPropertyTitle: definition.title,
+            MPMediaItemPropertyArtist: "flow",
+            MPMediaItemPropertyPlaybackDuration: definition.duration,
+            MPNowPlayingInfoPropertyElapsedPlaybackTime: min(definition.duration, player.currentTime),
+            MPNowPlayingInfoPropertyPlaybackRate: playing ? 1.0 : 0.0
+        ]
+    }
+    private func installCommands() {
+        guard commands.isEmpty else { return }
+        let center = MPRemoteCommandCenter.shared()
+        for (command, action) in [(center.pauseCommand, 0), (center.playCommand, 1), (center.stopCommand, 2), (center.togglePlayPauseCommand, 3)] {
+            command.isEnabled = true
+            let token = command.addTarget { [weak self] _ in
+                Task { @MainActor [weak self] in
+                    guard let self else { return }
+                    switch action {
+                    case 0: self.onRemotePause?()
+                    case 1: self.onRemoteResume?()
+                    case 2: self.onRemoteStop?()
+                    default: if self.isPlaying { self.onRemotePause?() } else { self.onRemoteResume?() }
+                    }
+                }
+                return .success
+            }
+            commands.append((command, token))
+        }
+    }
+    enum PlaybackError: Error { case cannotPlay }
 }

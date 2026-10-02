@@ -22,5 +22,13 @@
     "peak_dbfs": -29.05,
     "rms_dbfs": -37.6,
     "sha256": "f55cfcf88403b310ef556f0b91fe989684d0f94222adbac7fa91fc487cdf2140"
+  },
+  {
+    "file": "bell.wav",
+    "seconds": 8,
+    "sample_rate": 24000,
+    "peak_dbfs": -13.53,
+    "rms_dbfs": -29.28,
+    "sha256": "2a3baf141ff2e8e1fe8069742da65aaaaa9d9518130e57e9e0fb355c7893b346"
   }
 ]

@@ -3,16 +3,37 @@ import Observation
 
 struct Preferences: Codable, Equatable {
     var sound = true
-    var spokenIntroduction = false
     var haptics = false
     var ambientVolume: Float = 0.35
     var cueVolume: Float = 0.25
     var hasReadSafety = false
+    var practice: Practice = .openAwareness
+    var minutes = 10
+    var guidance: GuidanceLevel = .minimal
+    var breathing: BreathingMode = .natural
+
+    init() {}
+    enum CodingKeys: String, CodingKey {
+        case sound, haptics, ambientVolume, cueVolume, hasReadSafety, practice, minutes, guidance, breathing
+    }
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        sound = try c.decodeIfPresent(Bool.self, forKey: .sound) ?? true
+        haptics = try c.decodeIfPresent(Bool.self, forKey: .haptics) ?? false
+        ambientVolume = try c.decodeIfPresent(Float.self, forKey: .ambientVolume) ?? 0.35
+        cueVolume = try c.decodeIfPresent(Float.self, forKey: .cueVolume) ?? 0.25
+        hasReadSafety = try c.decodeIfPresent(Bool.self, forKey: .hasReadSafety) ?? false
+        practice = (try? c.decode(Practice.self, forKey: .practice)) ?? .openAwareness
+        minutes = try c.decodeIfPresent(Int.self, forKey: .minutes) ?? 10
+        guidance = (try? c.decode(GuidanceLevel.self, forKey: .guidance)) ?? .minimal
+        breathing = (try? c.decode(BreathingMode.self, forKey: .breathing)) ?? .natural
+    }
 
     func normalized() -> Preferences {
         var copy = self
         copy.ambientVolume = ambientVolume.isFinite ? min(1, max(0, ambientVolume)) : 0.35
         copy.cueVolume = cueVolume.isFinite ? min(1, max(0, cueVolume)) : 0.25
+        if !SessionDefinition.minuteOptions.contains(copy.minutes) { copy.minutes = 10 }
         return copy
     }
 }

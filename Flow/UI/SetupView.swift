@@ -1,99 +1,73 @@
 import SwiftUI
 
 struct SetupView: View {
-    let definition: SessionDefinition
     @Bindable var store: SessionStore
-    @State private var mode: BreathingMode = .natural
+    @Environment(\.dismiss) private var dismiss
     @State private var showingSafety = false
-    @State private var startAfterSafety = false
-    @State private var playerSession: PlayerSession?
-
-    private struct PlayerSession: Identifiable {
-        let coordinator: SessionCoordinator
-        var id: UUID { coordinator.engine.runID }
-    }
-
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 28) {
-                VStack(alignment: .leading, spacing: 9) {
-                    Text("\(Int(definition.duration / 60)) minutes · your own rhythm").font(.subheadline)
-                    Text(definition.title).font(.system(.largeTitle, design: .serif))
-                }.fixedSize(horizontal: false, vertical: true)
-                    .padding(24).frame(maxWidth: .infinity, minHeight: 220, alignment: .bottomLeading)
-                    .background(Atmosphere(warm: definition.id == "small-pause"))
-                    .clipShape(RoundedRectangle(cornerRadius: 22))
-
-                Text("settle in. let it be easy.").font(.system(.title2, design: .serif))
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("breathing").font(.headline.weight(.regular))
-                    ForEach(BreathingMode.allCases) { option in
-                        Button { mode = option } label: {
-                            HStack(alignment: .top, spacing: 14) {
-                                Image(systemName: mode == option ? "largecircle.fill.circle" : "circle")
-                                    .foregroundStyle(mode == option ? FlowStyle.accent : FlowStyle.muted)
-                                VStack(alignment: .leading, spacing: 6) {
-                                    Text(option.title).foregroundStyle(FlowStyle.ink)
-                                    Text(option == .natural ? "no timing to follow. breathe as you are."
-                                         : "an optional visual cue: 4 seconds in, 4 out. no holds. follow while it feels comfortable.")
-                                        .font(.subheadline).foregroundStyle(FlowStyle.muted)
-                                }.fixedSize(horizontal: false, vertical: true)
-                                Spacer(minLength: 0)
-                            }.padding(18).frame(maxWidth: .infinity, alignment: .leading)
-                                .background(FlowStyle.surface, in: RoundedRectangle(cornerRadius: 18))
-                                .overlay(RoundedRectangle(cornerRadius: 18).stroke(mode == option ? FlowStyle.accent.opacity(0.5) : FlowStyle.line))
-                        }.buttonStyle(.plain)
-                            .accessibilityAddTraits(mode == option ? .isSelected : [])
-                            .accessibilityIdentifier("mode-\(option.rawValue)")
+        NavigationStack {
+            Form {
+                Section("practice") {
+                    ForEach(Practice.allCases) { practice in
+                        Button { store.preferences.practice = practice } label: {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 5) {
+                                    Text(practice.title).foregroundStyle(FlowStyle.ink)
+                                    Text(practice.detail).font(.footnote).foregroundStyle(FlowStyle.muted)
+                                }
+                                Spacer()
+                                if practice == store.preferences.practice { Image(systemName: "checkmark").foregroundStyle(FlowStyle.accent) }
+                            }.padding(.vertical, 5)
+                        }.accessibilityIdentifier("practice-\(practice.rawValue)")
+                            .accessibilityAddTraits(practice == store.preferences.practice ? .isSelected : [])
                     }
                 }
-                VStack(spacing: 18) {
-                    Toggle("ambient sound & phase tones", isOn: $store.preferences.sound)
-                    Toggle("spoken introduction", isOn: $store.preferences.spokenIntroduction)
-                }.font(.body)
-                Button { startAfterSafety = false; showingSafety = true } label: {
-                    Label("before you begin · safety notes", systemImage: "info.circle")
-                        .font(.subheadline).frame(minHeight: 44)
-                }.accessibilityIdentifier("safety-notes")
-            }.padding(24)
-        }
-        .navigationTitle("your session").navigationBarTitleDisplayMode(.inline)
-        .safeAreaInset(edge: .bottom) {
-            Button("start session") {
-                if store.preferences.hasReadSafety { startPlayer() }
-                else { startAfterSafety = true; showingSafety = true }
-            }.buttonStyle(FlowPrimaryButton()).accessibilityIdentifier("start-session")
-                .padding(.horizontal, 24).padding(.vertical, 12)
-                .background(FlowStyle.canvas)
-        }
-        .flowScreen()
-        .sheet(isPresented: $showingSafety, onDismiss: safetyDismissed) {
-            SafetyView {
-                store.preferences.hasReadSafety = true
-                showingSafety = false
-            }
-        }
-        .fullScreenCover(item: $playerSession) { session in
-            PlayerView(coordinator: session.coordinator)
+                Section("duration") {
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 85))], spacing: 12) {
+                        ForEach(SessionDefinition.minuteOptions, id: \.self) { minutes in
+                            Button("\(minutes) min") { store.preferences.minutes = minutes }
+                                .font(.body.monospacedDigit()).frame(maxWidth: .infinity, minHeight: 48)
+                                .background(store.preferences.minutes == minutes ? FlowStyle.accent : FlowStyle.surface, in: Capsule())
+                                .foregroundStyle(store.preferences.minutes == minutes ? FlowStyle.canvas : FlowStyle.ink)
+                                .buttonStyle(.plain).accessibilityIdentifier("duration-\(minutes)")
+                                .accessibilityAddTraits(store.preferences.minutes == minutes ? .isSelected : [])
+                        }
+                    }.padding(.vertical, 8)
+                }
+                if store.preferences.practice != .silence {
+                    Section {
+                        Picker("guidance", selection: $store.preferences.guidance) {
+                            ForEach(GuidanceLevel.allCases) { Text($0.title).tag($0) }
+                        }.accessibilityIdentifier("guidance-picker")
+                        Text(guidanceDescription).font(.footnote).foregroundStyle(FlowStyle.muted)
+                        Picker("breathing", selection: $store.preferences.breathing) {
+                            ForEach(BreathingMode.allCases) { Text($0.title).tag($0) }
+                        }.accessibilityIdentifier("breathing-picker")
+                        Toggle("ambient sound", isOn: $store.preferences.sound)
+                        Toggle("breathing haptics", isOn: $store.preferences.haptics)
+                    } header: { Text("your rhythm") } footer: {
+                        Text("pacing is optional and only happens while settling. follow your own comfort. haptics work while the app is on screen; recordings and bells continue with the phone locked.")
+                    }
+                }
+                Section {
+                    Text("the screen gradually settles into darkness. tap anywhere to bring back the controls. pause or end whenever you need.")
+                        .font(.subheadline).foregroundStyle(FlowStyle.muted)
+                    Text("a soft bell opens and closes your practice. longer sessions leave more room for silence.")
+                        .font(.subheadline).foregroundStyle(FlowStyle.muted)
+                    Button("safety notes") { showingSafety = true }.accessibilityIdentifier("safety-notes")
+                }
+            }.scrollContentBackground(.hidden).flowScreen()
+                .navigationTitle("your practice").navigationBarTitleDisplayMode(.inline)
+                .toolbar { ToolbarItem(placement: .confirmationAction) { Button("done") { dismiss() }.accessibilityIdentifier("setup-done") } }
+                .sheet(isPresented: $showingSafety) { SafetyView() }
         }
     }
-
-    private func safetyDismissed() {
-        let shouldStart = startAfterSafety && store.preferences.hasReadSafety
-        startAfterSafety = false
-        // Present only after the safety sheet has finished dismissing.
-        if shouldStart { startPlayer() }
-    }
-
-    private func startPlayer() {
-        let engine = SessionEngine(definition: definition, mode: mode, clock: ContinuousTimeSource())
-        let value = SessionCoordinator(engine: engine, audio: AudioController(), store: store)
-        value.onHaptic = {
-            guard UIApplication.shared.applicationState == .active else { return }
-            UIImpactFeedbackGenerator(style: .soft).impactOccurred(intensity: 0.35)
+    private var guidanceDescription: String {
+        switch store.preferences.guidance {
+        case .full: "more frequent reminders, with quiet space between."
+        case .minimal: "a few spoken invitations, then long stretches of silence."
+        case .silent: "an opening instruction, then no further spoken cues."
         }
-        // The same value supplies the player and drives its presentation.
-        playerSession = PlayerSession(coordinator: value)
     }
 }
 

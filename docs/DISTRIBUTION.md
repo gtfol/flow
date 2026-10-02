@@ -24,6 +24,12 @@ Build **0.1.0 (3)** was uploaded through Xcode Organizer and successfully proces
 
 Validation: 19 macOS core tests, 27 iPhone-hosted tests, and 3 session navigation UI tests passed. Navigation checks used a separate simulator to avoid interference from another app's test run. The signed archive and code signature were verified, and [GitHub checks passed](https://github.com/gtfol/flow/actions/runs/36930481153).
 
+## Build 4 — in progress
+
+Version **0.2.0 (4)** adds Stillness, Open Awareness, Pure Silence, six duration presets, three guidance levels, staged practices, fading controls, optional five-second pacing/haptics, finite offline audio with bells, and Brian narration. App Store pricing and naming stay as configured.
+
+Core and audio-rendering checks passed; the iPhone test suite and signed upload remain pending. The Mac was locked during the local UI test/archiving attempt. The unsigned app builds, and its processed Info.plist includes the audio background mode. This build is **not yet on TestFlight**. See [verification](VERIFICATION.md) for the current boundary.
+
 ## Checks
 
 GitHub Actions uses macOS 26 and Xcode 26.6. It verifies that regenerating the Xcode project leaves no diff, runs core tests on macOS, compiles for simulator and device, and runs the iPhone-hosted tests. Native screen captures and the complete result bundle are retained as workflow artifacts.

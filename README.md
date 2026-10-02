@@ -2,91 +2,68 @@
 
 [![iPhone build and tests](https://github.com/gtfol/flow/actions/workflows/ios.yml/badge.svg)](https://github.com/gtfol/flow/actions/workflows/ios.yml)
 
-A personal, offline iPhone app for a little room to breathe. Two original sessions: **a small pause** (2 minutes) and **a quiet five** (5 minutes). Natural breathing is the default. An optional gentle visual cue uses 4 seconds in / 4 seconds out, with no holds.
+A free, offline iPhone app for a little room to be here. Choose **Stillness**, **Open Awareness**, or **Pure Silence**, set **2, 5, 10, 15, 20, or 30 minutes**, and begin.
 
 ## Run
 
-1. Open `Flow.xcodeproj` in Xcode.
-2. Select **Flow**, choose an iPhone simulator, and press Run.
-3. For your iPhone, select your device. Signing is configured for **gtfol, LLC** (`J59ZSG67SJ`) with bundle identifier `dev.gtfol.flow`. Contributors can select their own development team and bundle identifier.
+Open `Flow.xcodeproj`, select **Flow**, choose an iPhone simulator, and run. For a physical iPhone, signing is configured for **gtfol, LLC** (`J59ZSG67SJ`), bundle `dev.gtfol.flow`. Contributors can select their own team and bundle identifier.
 
-The complete project, sessions, audio, and icon are included. No dependency installation, code generation, account, API key, server, or subscription is needed to run the app. The deployment target is iOS 17.0. Development uses Xcode 26.6 / Swift 6.3.3 in Swift 5 language mode.
-
-From this repository root, run the core tests:
+The deployment target is iOS 17. Development uses Xcode 26.6 / Swift 6.3.3 in Swift 5 language mode. All recordings and resources are bundled. No dependency installation, API key, account, server, runtime speech synthesis, or subscription is needed.
 
 ```sh
 swift test
+scripts/test-ios.sh
 ```
 
-Build without a device signing team:
+The second command builds for simulator and device, then runs core, native audio, rendering, and UI tests on an available simulator. Override `FLOW_SIMULATOR_ID`, `FLOW_DERIVED_DATA`, and `FLOW_RESULT_BUNDLE` for isolated checks. Outputs default to a temporary directory. See [verification](docs/VERIFICATION.md) for results and hardware limitations.
 
-```sh
-xcodebuild -project Flow.xcodeproj -scheme Flow \
-  -configuration Debug -destination 'generic/platform=iOS Simulator' build
-```
+## The experience
 
-The package tests use the same core source as the iPhone app. They run on macOS and do not pretend to validate physical iPhone audio, haptics, or screen locking. See [verification](docs/VERIFICATION.md) for results and device checks.
+- **Stillness:** arrive, settle with the breath, let the guidance recede, and return gently.
+- **Open Awareness:** adds an invitation to include the body and sound before a quiet open period.
+- **Pure Silence:** an opening bell, silence, and a closing bell. No voice or pacing.
+- **Full / Minimal / Silent guidance:** more reminders, a few invitations, or the opening instruction only. Minimal is the default.
+- **Natural breathing / gentle pace:** natural is the default; optional five-second inhale/exhale pacing appears only during Settle, with no holds. A control returns to natural breathing immediately.
+- **Progressive disappearance:** controls, timer, text, then the visual fade. Tap anywhere to recover the controls. Return brings them back. VoiceOver retains controls, and Reduce Motion keeps written pacing available.
+- **Sparse sound:** original ambient bed fades away before the quiet portion; Brian narration is bundled offline. Opening and closing bells mark the selected interval. Pure Silence never includes ambience.
+- **Optional haptics:** gentle phase-boundary taps while the app is in the foreground. Audio and timing continue with the screen locked.
+- **Gentle ending:** the bell rings at the selected duration; the screen offers a quiet moment before showing completion. Done is available immediately. Stopping early records no completion.
 
-For the iPhone-hosted tests and native screen rendering checks, use **Product → Test** in Xcode with an iPhone simulator selected, or:
+The home and app icon say **flow**. The App Store display name is **flow: your inner space**. The owner intends the app to remain free and noncommercial. No paywall, tracking, ads, feed, achievements, social features, or backend is included.
 
-```sh
-xcodebuild -project Flow.xcodeproj -scheme Flow \
-  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' test
-```
+Othership's public [app experience](https://www.othership.us/app) informed the atmosphere and focus on sound. The interface, scripts, rings, bell, and ambient bed are original; no Othership content was copied. See [asset provenance](ASSETS.md) for the generated narration's noncommercial license and attribution.
 
-Choose an available simulator name on your Mac. The test target includes native audio decoding, lifecycle-notification integration, and screenshots of the real SwiftUI views at standard and largest accessibility text sizes. Screens are saved as test-result attachments and inside the test app's Documents/ScreenChecks folder. These deterministic renders complement the manual walkthrough; they do not replace it.
+## Timing and audio
 
-For the complete simulator/device build and test sequence, run `scripts/test-ios.sh`. Build outputs go to a temporary folder by default. Override `FLOW_DERIVED_DATA` and `FLOW_RESULT_BUNDLE` to retain them at chosen paths.
+`SessionDefinition` builds a deterministic plan from validated preset durations. Guided plans contain Arrive, Settle, optional Expand, Open, and Return. Phase lengths are capped so longer practices increasingly add quiet time. Full guidance leaves the latter 65% of Open free of prompts. The shortest session compresses the plan; it does not promise several minutes in each phase.
 
-## This first slice
+`SessionEngine` uses an injectable monotonic clock. Its states are idle, preparing, running, paused, interrupted, completed, and stopped. Elapsed time is accumulated active duration plus time since resume; UI refresh callbacks do not count time. Pause excludes paused duration, and resume preserves the exact phase and recording position. Delayed refreshes skip missed haptics.
 
-Home → session setup → first-use safety notes → readable, optionally spoken introduction → breathing player → finish. Pausing, returning to natural breathing, muting sound, and stopping early are always available in the player. Stop is pinned outside the scrolling content, including at accessibility text sizes. A stopped session says **session stopped** and earns no completion.
+Before playback, `SessionAudioRenderer` mixes the finite session into a temporary 24 kHz mono PCM recording. It includes narration, fading ambience, intentional silence, and an eight-second closing-bell tail. Rendering is cancellable, validates voice overlaps, and uses bounded chunks. A 30-minute file is approximately 87 MB and is removed on stop or completion. Bundled MP3 originals remain unchanged.
 
-Settings provide separate ambient/tone volume controls, independent sound and spoken-introduction switches, optional haptics, completed-session details, local history deletion, safety notes, and source notes. Links in source notes require internet if explicitly opened; breathing sessions do not.
+`AudioController` plays that recording using AVAudioPlayer with the playback audio-session category and the audio background mode. This keeps scheduled cues and the ending bell together during screen lock. Lock-screen pause, resume, and stop commands are supported. Backgrounding does not pause. Audio interruptions, disconnected output, and media-service loss/reset pause and require explicit resume. Reset reconstructs the native player. Audio preparation/play failures show recovery text; a stopped or cancelled preparation cannot start late.
 
-## Assumptions and design direction
-
-- **Name:** flow, as requested. The App Store listing is **flow: your inner space**. The home-screen name and interface use **flow**. App Store Connect uses bundle identifier `dev.gtfol.flow`; no trademark clearance is implied.
-- **Platform:** native iPhone, SwiftUI, iOS 17+. No web app, Android app, or backend is included.
-- **Reference:** Othership's public [app page](https://www.othership.us/app) and [App Store screenshots](https://apps.apple.com/us/app/othership-guided-breathwork/id1590348936) informed the immersive, sound-led approach, atmospheric session selection, and focused player. Flow uses original vector light studies, a dark ink / sage palette, and system serif and sans-serif typography. No recordings, subscription content, artwork, claims, names, or distinctive layouts were copied.
-- **gtfol reference:** inspected the local capsule iPhone project from gtfol/capsule. Its separated core/presentation structure, lowercase interface, native controls, and generous spacing informed this project. No capsule application code, font files, or account integration were copied.
-- **Audio:** the original synthesized bed and tones accompany an optional, bundled Sarah introduction generated with ElevenLabs. The owner selected the voice after audition. All playback is offline; no system speech, runtime AI service, or subscription is needed. The recording is titled **introduction · elevenlabs.io** and shared for noncommercial use with attribution; see [ASSETS.md](ASSETS.md) for provenance and restrictions. The outro is visible text only.
-- **Availability:** the owner intends flow to be free on the App Store, with no monetization. The narration's Free-plan license is limited to noncommercial use; free app pricing does not itself license commercial reuse.
-- **Repository/distribution:** this repository follows the gtfol/vitals layout, with reproducible Xcode project generation and GitHub Actions for core tests, iPhone builds, native tests, and screenshot artifacts. See [distribution](docs/DISTRIBUTION.md) for release steps. No source license has been selected.
-
-## Timing and lifecycle
-
-`SessionEngine` is the only session state machine: idle, introduction, running, paused, interrupted, completed, stopped. `ContinuousClock` provides monotonic time through an injectable `MonotonicTimeSource`. Elapsed time is accumulated active duration plus the monotonic difference since the latest resume. The 50 ms observation task only refreshes the presentation; counting callbacks never advances the session. Wall-clock dates are used only for completion records.
-
-Introduction and ending text sit outside the timed interval. The user starts the breathing interval explicitly. Pausing or interrupting the introduction stops speech; explicit resume starts the interval without replaying narration. The introduction remains readable on the introduction screen; a spoken-intro failure offers text/recovery.
-
-**Resume policy:** preserve all active duration, exclude all paused duration, and restart the optional cue at a new inhale boundary. No partial-cycle time is removed from the total. For example, pause at 5.5 active seconds, wait 10 minutes, resume: elapsed stays 5.5, the cue begins an inhale, and the 2-minute session still ends at exactly 120 active seconds. Its last cycle can be shorter than eight seconds. Completion never depends on following the cue.
-
-On delayed refreshes, calculate the current phase directly. Only a transition observed in its first 250 ms can sound; missed tones are skipped, never replayed. Pause freezes the visual and stops speech immediately; player audio has an 80 ms release ramp, then resources are released. Resume cancels any remaining release task before preparing new playback.
-
-App inactivity (including backgrounding/locking), audio interruption, headphone disconnection, and media-service loss/reset pause the session. Interruption-end notifications never resume it. Audio activation/playback failures present recovery text and pause the timeline. Users can turn sound off and resume with the visual/text. Terminal states stop audio; leaving cancels the observation task and audio callbacks. There is no background-audio entitlement or automatic resumption.
+The closing bell begins at the exact selected duration. Completion is recorded once; playback may continue through the bell's decay. Exiting stops and removes audio resources. Mute affects all sound without altering the timer. Haptics use foreground-only UIKit feedback and are not advertised as background haptics.
 
 ## Local data
 
-`SessionStore` wraps app-scoped `UserDefaults` with versioned, Codable data for preferences and a small list of completed sessions. This is sufficient for a personal first slice; there is no database or migration framework. Each record contains exactly a run UUID, session ID, completion date, and actual active duration. The coordinator saves once per run and the store also deduplicates UUIDs across relaunches. Stopped, abandoned, and currently interrupted runs are never persisted. An interrupted run can be completed only after explicit resume and the full active interval.
+App-scoped UserDefaults stores preferences and completed sessions. Existing build-3 preferences migrate with defaults for the new practice options, retaining safety acknowledgement, volumes, and history. Completion records contain a run UUID, practice ID, completion date, and active duration; IDs are deduplicated. Older session names remain readable.
 
-History deletion leaves preferences and bundled definitions alone. There is no app cloud sync; operating-system backups may include app data. No diaries, diagnoses, biometric records, analytics, or tracking SDKs are used. The privacy manifest declares app-scoped UserDefaults access.
+No unfinished session is restored after process termination. History deletion leaves preferences intact. There is no app cloud sync; operating-system backups may include local data. No diaries, medical records, biometrics, analytics, or tracking SDKs are used. The privacy manifest declares app-scoped UserDefaults access.
 
 ## Source layout
 
-- `Flow/Core`: strict declarative definitions, monotonic engine, coordinator/audio seam, local store.
-- `Flow/Audio`: native audio session handling, bundled audio playback, optional recorded introduction.
-- `Flow/UI`: home, setup/safety, player/finish, settings/source notes, vector visuals.
-- `Flow/Resources`: validated session JSON, WAVs, introduction MP3, icon, privacy manifest.
-- `FlowTests`: fake-clock and fake-audio regression tests.
-- `FlowNativeTests`: iPhone-hosted audio integration and native rendering checks.
-- `FlowUITests`: actual session navigation, first and repeat starts, safety acknowledgement, and natural/paced playback controls.
-- `scripts`: reproducible audio/icon synthesis and optional project regeneration.
+- `Flow/Core`: practice plans, monotonic engine, coordinator, local store.
+- `Flow/Audio`: finite audio rendering and native playback lifecycle.
+- `Flow/UI`: home, setup/safety, fading player/finish, settings, source notes, vector artwork.
+- `Flow/Resources`: offline recordings, original bell/ambience, icon, privacy manifest, measurement manifests.
+- `FlowTests`: fake-clock and audio-adapter regression tests.
+- `FlowNativeTests`: real decoding/rendering/playback and SwiftUI screen captures.
+- `FlowUITests`: first/repeated launch, controls, fading/reveal, background return, safety navigation.
+- `scripts`: reproducible audio/icon synthesis, project generation, and iOS checks.
 
-Definitions reject unknown fields, unsupported phases, holds, nonpositive or nonfinite durations, durations over five minutes, and any phase pair other than the approved 4/4 inhale/exhale. Content revisions are explicit. There is no import UI or custom protocol editor. `SessionAudio.playIntroduction()` keeps recorded narration separate from the clock and history logic.
+Regenerate the project with `python3 scripts/generate_project.py` after changing source/resource membership. [Distribution](docs/DISTRIBUTION.md) describes GitHub and TestFlight setup. No source license has been selected.
 
-## Safety and content
+## Content boundaries
 
-This is a general wellness tool, not treatment or assessment. Safety and guidance text comes from the supplied brief. The [NHS guidance](https://www.nhs.uk/mental-health/self-help/guides-tools-and-activities/breathing-exercises-for-stress/) supports comfortable breathing without forcing and optional counting; it does not prescribe flow's fixed 4/4 cue. The source notes also link to [Cleveland Clinic's hyperventilation explanation](https://my.clevelandclinic.org/health/diseases/hyperventilation). No claims to treat anxiety, improve oxygenation, release trauma, or guarantee sleep are made.
-
-Read [ASSETS.md](ASSETS.md) for provenance and [docs/VERIFICATION.md](docs/VERIFICATION.md) for the verification boundary. Licensing remains an owner decision; there is deliberately no source license file yet.
+Flow is a general wellness tool, not treatment or assessment. Natural breathing is the default, pacing is optional, and the safety notes emphasize comfort and stopping when unwell. There are no breath holds, intense breathing protocols, clinical promises, or claims that experiences establish metaphysical facts. Source notes link to [NHS gentle breathing guidance](https://www.nhs.uk/mental-health/self-help/guides-tools-and-activities/breathing-exercises-for-stress/) and [Cleveland Clinic's hyperventilation explanation](https://my.clevelandclinic.org/health/diseases/hyperventilation); the five-second pace is a product choice, not a prescribed protocol from those sources.

@@ -61,9 +61,17 @@ def cue(frequency):
     return sample
 
 
+def bell(t, channel):
+    attack = min(1.0, t / 0.025)
+    release = min(1.0, (8 - t) / 0.5)
+    partials = [(440, .16, 1.4), (880.7, .055, .85), (1193, .025, .55)]
+    return max(0, attack * release) * sum(gain * math.exp(-t / decay) * math.sin(TAU * frequency * t)
+                                           for frequency, gain, decay in partials)
+
+
 if __name__ == "__main__":
     DEST.mkdir(parents=True, exist_ok=True)
     results = [render("ambient", 60, ambient), render("inhale", .8, cue(440)),
-               render("exhale", .8, cue(330))]
+               render("exhale", .8, cue(330)), render("bell", 8, bell)]
     (DEST / "audio-metrics.json").write_text(json.dumps(results, indent=2) + "\n")
     print(json.dumps(results, indent=2))

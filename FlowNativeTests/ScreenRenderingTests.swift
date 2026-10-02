@@ -5,12 +5,15 @@ import SwiftUI
 @MainActor private final class SnapshotClock: MonotonicTimeSource { var now: TimeInterval = 0 }
 @MainActor private final class SnapshotAudio: SessionAudio {
     var onInterruption: ((String) -> Void)?
-    func startAmbient(preferences: Preferences) throws {}
-    func cue(_ kind: SessionDefinition.Phase.Kind, volume: Float) throws {}
-    func setVolumes(ambient: Float, cue: Float) {}
-    func stopSound() {}
+    var onFinish: (() -> Void)?
+    var onRemotePause: (() -> Void)?
+    var onRemoteResume: (() -> Void)?
+    var onRemoteStop: (() -> Void)?
+    func prepare(definition: SessionDefinition, preferences: Preferences) async throws {}
+    func play(from time: TimeInterval) throws {}
+    func pause() {}
+    func setMuted(_ muted: Bool) {}
     func stopAll() {}
-    func playIntroduction() throws -> String? { nil }
 }
 
 /// Actual compiled SwiftUI views in a simulator UIWindow. These are deterministic
@@ -25,36 +28,31 @@ import SwiftUI
         let folder = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
             .appendingPathComponent("ScreenChecks", isDirectory: true)
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
-        let data = try Data(contentsOf: XCTUnwrap(Bundle.main.url(forResource: "sessions", withExtension: "json")))
-        let definitions = try SessionDefinition.load(data: data)
-        let definition = try XCTUnwrap(definitions.first)
         let storage = SessionStore(defaults: UserDefaults(suiteName: "flow.screens.\(UUID().uuidString)")!)
         storage.preferences.sound = false
 
-        func coordinator(_ mode: BreathingMode, state: SessionState) -> SessionCoordinator {
+        func coordinator(_ mode: BreathingMode, time: Double, state: SessionState = .running, practice: Practice = .openAwareness) -> SessionCoordinator {
             let clock = SnapshotClock()
-            let engine = SessionEngine(definition: definition, mode: mode, clock: clock)
+            let engine = SessionEngine(definition: try! SessionDefinition(practice: practice, minutes: 2, breathing: mode), clock: clock)
             let coordinator = SessionCoordinator(engine: engine, audio: SnapshotAudio(), store: storage)
-            coordinator.start()
-            if state != .introduction {
-                coordinator.resume(automaticallyRefresh: false)
-                clock.now = state == .completed ? 120 : 22
-                coordinator.tick()
-                if state == .paused { coordinator.pause() }
-            }
+            engine.prepare(); engine.beginRunning()
+            clock.now = time; engine.refresh()
+            if state == .paused { engine.pause() }
             return coordinator
         }
 
         for (large, reduced) in [(false, false), (true, true), (false, true)] {
             let screens: [(String, AnyView)] = [
-                ("home", AnyView(HomeView(sessions: definitions, store: storage))),
-                ("setup", AnyView(NavigationStack { SetupView(definition: definition, store: storage) })),
+                ("home", AnyView(HomeView(store: storage))),
+                ("setup", AnyView(SetupView(store: storage))),
                 ("safety", AnyView(SafetyView(acknowledge: {}))),
-                ("introduction", AnyView(PlayerView(coordinator: coordinator(.natural, state: .introduction), reduceMotionOverride: reduced))),
-                ("natural", AnyView(PlayerView(coordinator: coordinator(.natural, state: .running), reduceMotionOverride: reduced))),
-                ("paced", AnyView(PlayerView(coordinator: coordinator(.paced, state: .running), reduceMotionOverride: reduced))),
-                ("paused", AnyView(PlayerView(coordinator: coordinator(.paced, state: .paused), reduceMotionOverride: reduced))),
-                ("finish", AnyView(PlayerView(coordinator: coordinator(.natural, state: .completed), reduceMotionOverride: reduced))),
+                ("arrive", AnyView(PlayerView(coordinator: coordinator(.natural, time: 5), reduceMotionOverride: reduced))),
+                ("natural", AnyView(PlayerView(coordinator: coordinator(.natural, time: 35), reduceMotionOverride: reduced))),
+                ("paced", AnyView(PlayerView(coordinator: coordinator(.paced, time: 47), reduceMotionOverride: reduced))),
+                ("open", AnyView(PlayerView(coordinator: coordinator(.natural, time: 101), reduceMotionOverride: reduced))),
+                ("silence", AnyView(PlayerView(coordinator: coordinator(.natural, time: 25, practice: .silence), reduceMotionOverride: reduced))),
+                ("paused", AnyView(PlayerView(coordinator: coordinator(.paced, time: 42, state: .paused), reduceMotionOverride: reduced))),
+                ("finish", AnyView(PlayerView(coordinator: coordinator(.natural, time: 120), reduceMotionOverride: reduced))),
                 ("settings", AnyView(SettingsView(store: storage)))
             ]
             for (name, screen) in screens {
