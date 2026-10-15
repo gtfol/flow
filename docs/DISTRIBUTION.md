@@ -30,6 +30,14 @@ Version **0.2.0 (4)** adds Stillness, Open Awareness, Pure Silence, six duration
 
 All automated checks passed: 18 macOS core tests, 25 iPhone-hosted tests, and four navigation tests in [run 36953418240](https://github.com/gtfol/flow/actions/runs/36953418240). The signed archive passed strict code-signature verification, with the expected version, bundle name, team, and audio background mode. Xcode Organizer confirmed **flow 0.2.0 (4) uploaded** on October 1, 2026, at 8:12 PM Pacific. App Store Connect subsequently confirmed processing was complete and build 4 was **Testing** in the **Internal** group. See [verification](VERIFICATION.md) for remaining physical-device checks.
 
+## Build 5
+
+Version **0.2.0 (5)** replaces two-phase pacing with box breathing and a square that traces inhale / hold / exhale / hold. Optional softer Brian counting is aligned to the same playback clock as the visuals; each phase cue is beat one, followed by two, three, four. Returning to natural breathing stops the counts immediately. Voice delivery is preserved with 1.25-second beats, five-second phases, and complete twenty-second cycles.
+
+The signed archive and strict code-signature verification passed. Xcode confirmed upload on October 15, 2026, at 4:30 AM Pacific. App Store Connect shows the processed build as **Testing** in the **Internal** group, with an upload time of 4:31 AM Pacific. The app remains **flow**, with **flow: your inner space** as its App Store listing name.
+
+Validation: 21 macOS core tests, 30 iPhone-hosted tests (including eight native-audio checks and 29 rendered screens), and all four UI scenarios passed. The counted-session UI scenario passed on an isolated rerun after correcting the test's switch tap. Source commit: `5f8f52e`; [GitHub verification run](https://github.com/gtfol/flow/actions/runs/38727741703). See [verification](VERIFICATION.md) for result locations and physical-device boundaries.
+
 ## Checks
 
 GitHub Actions uses macOS 26 and Xcode 26.6. It verifies that regenerating the Xcode project leaves no diff, runs core tests on macOS, compiles for simulator and device, and runs the iPhone-hosted tests. Native screen captures and the complete result bundle are retained as workflow artifacts.

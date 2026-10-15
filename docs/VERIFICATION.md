@@ -9,7 +9,7 @@ Build **0.2.0 (5)** adds a clockwise square for inhale / hold / exhale / hold, f
 - **All four UI scenarios passed.** Three passed in the full run. The counting test initially tapped the switch's enclosing row instead of its thumb; after targeting the thumb, its isolated rerun passed with counting enabled and a real timed return to natural breathing. No production-code change was needed for this test correction.
 - Simulator Debug and unsigned device Release builds passed. The signed archive passed strict code-signature verification and contains the expected build number, app name, bundle identifier, background-audio mode, and 20-second counting recording.
 - Local results: `/private/tmp/flow-build5/FullTests.xcresult` and `/private/tmp/flow-build5/CountingUITests.xcresult`. The counting file, original source, timing manifest, and reproducible preparation script are checked in together.
-- TestFlight upload is being completed; do not infer processing or tester availability from archive success alone.
+- Xcode confirmed the upload succeeded on October 15, 2026, at 4:30 AM Pacific. The Codex browser subsequently verified **0.2.0 (5) Testing** in the **Internal** group. No production App Store submission was made.
 
 The physical-device and listening boundaries below still apply. Automated timing checks do not establish that the voice subjectively meets another app's production standards.
 
