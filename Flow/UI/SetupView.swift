@@ -43,6 +43,14 @@ struct SetupView: View {
                         Picker("breathing", selection: $store.preferences.breathing) {
                             ForEach(BreathingMode.allCases) { Text($0.title).tag($0) }
                         }.accessibilityIdentifier("breathing-picker")
+                        if store.preferences.breathing == .paced {
+                            Toggle("spoken counting", isOn: $store.preferences.spokenCounting)
+                                .accessibilityIdentifier("spoken-counting")
+                            Text("inhale, 2, 3, 4 · hold, 2, 3, 4 · exhale, 2, 3, 4 · hold, 2, 3, 4. each cue is the first beat. counts follow a rhythm, not seconds. skip any hold that feels uncomfortable.")
+                                .font(.footnote).foregroundStyle(FlowStyle.muted)
+                            Text("spoken counting is separate from guidance. it follows each paced cycle, then falls quiet when natural breathing returns.")
+                                .font(.footnote).foregroundStyle(FlowStyle.muted)
+                        }
                         Toggle("ambient sound", isOn: $store.preferences.sound)
                         Toggle("breathing haptics", isOn: $store.preferences.haptics)
                     } header: { Text("your rhythm") } footer: {

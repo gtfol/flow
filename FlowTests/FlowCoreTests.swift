@@ -12,6 +12,9 @@ import XCTest
     var onRemotePause: (() -> Void)?
     var onRemoteResume: (() -> Void)?
     var onRemoteStop: (() -> Void)?
+    var timelinePosition: TimeInterval?
+    var countingDisabled = false
+    func disableCounting() { countingDisabled = true }
     var playing = false
     var prepared = 0
     var plays: [Double] = []
@@ -57,6 +60,39 @@ import XCTest
             }
         }
     }
+    func testBoxPhasesAndFourCountsAtEveryBoundary() async throws {
+        for beat in 0..<160 {
+            let position = BreathingRhythm.position(at: Double(beat) * BreathingRhythm.beatDuration)
+            XCTAssertEqual(position.kind, BreathingRhythm.phases[(beat / 4) % 4])
+            XCTAssertEqual(position.count, beat % 4 + 1)
+            XCTAssertEqual(position.sequence, beat / 4)
+            XCTAssertEqual(position.progress, Double(beat % 4) / 4, accuracy: 0.00001)
+        }
+    }
+    func testPacingEndsOnCompleteCycleAndHasNoNarration() async throws {
+        for minutes in SessionDefinition.minuteOptions {
+            let definition = try SessionDefinition(minutes: minutes, guidance: .full, breathing: .paced, spokenCounting: true)
+            let window = try XCTUnwrap(definition.pacingWindow)
+            let cycles = (window.upperBound - window.lowerBound) / BreathingRhythm.cycleDuration
+            XCTAssertEqual(cycles, cycles.rounded(), accuracy: 0.0001)
+            XCTAssertFalse(definition.narration.contains { window.contains($0.time) })
+            XCTAssertLessThanOrEqual(window.upperBound, definition.segments.first { $0.stage == .settle }!.end)
+        }
+        XCTAssertFalse(try SessionDefinition(breathing: .natural, spokenCounting: true).spokenCounting)
+        XCTAssertFalse(try SessionDefinition(practice: .silence, breathing: .paced, spokenCounting: true).spokenCounting)
+    }
+    func testAudioClockWinsAndNaturalOverridePersistsAcrossResume() async throws {
+        let (c, clock, audio, _) = try await harness()
+        audio.timelinePosition = 41.25; clock.now = 500; c.tick()
+        XCTAssertEqual(c.engine.elapsed, 41.25)
+        XCTAssertEqual(c.engine.phase?.kind, .holdIn)
+        XCTAssertEqual(c.engine.phase?.count, 2)
+        c.pause(); clock.now = 1000
+        XCTAssertEqual(c.engine.elapsed, 41.25)
+        c.useNaturalBreathing(); c.resume(automaticallyRefresh: false)
+        XCTAssertEqual(audio.plays.last, 41.25)
+        XCTAssertTrue(audio.countingDisabled); XCTAssertNil(c.engine.phase)
+    }
     func testInvalidDurationsRejected() async {
         for value in [-1, 0, 1, 3, 31, 60, Int.max] { XCTAssertThrowsError(try SessionDefinition(minutes: value)) }
     }
@@ -84,7 +120,7 @@ import XCTest
         clock.now = 35; c.tick()
         XCTAssertEqual(c.engine.phase?.kind, .inhale)
         clock.now = 39.999; c.tick(); XCTAssertEqual(c.engine.phase?.kind, .inhale)
-        clock.now = 40; c.tick(); XCTAssertEqual(c.engine.phase?.kind, .exhale)
+        clock.now = 40; c.tick(); XCTAssertEqual(c.engine.phase?.kind, .holdIn)
         clock.now = 45; c.tick(); XCTAssertEqual(c.engine.phase?.sequence, 2)
         clock.now = 59; c.tick(); XCTAssertNil(c.engine.phase)
         XCTAssertEqual(c.engine.segment.stage, .expand)
@@ -93,7 +129,7 @@ import XCTest
         let (c, clock, _, _) = try await harness()
         clock.now = 47.5; c.tick()
         XCTAssertEqual(c.engine.elapsed, 47.5)
-        XCTAssertEqual(c.engine.phase?.progress, 0.5)
+        XCTAssertEqual(c.engine.phase!.progress, 0.5, accuracy: 0.0001)
         clock.now = 106; c.tick()
         XCTAssertEqual(c.engine.segment.stage, .returning)
         XCTAssertNil(c.engine.phase)
@@ -106,7 +142,7 @@ import XCTest
         c.resume(automaticallyRefresh: false)
         XCTAssertEqual(audio.plays, [0, 42.5])
         clock.now += 2.5; c.tick()
-        XCTAssertEqual(c.engine.elapsed, 45); XCTAssertEqual(c.engine.phase?.kind, .inhale)
+        XCTAssertEqual(c.engine.elapsed, 45); XCTAssertEqual(c.engine.phase?.kind, .exhale)
     }
     func testScreenLockAndForegroundRefreshDoNotPause() async throws {
         let (c, clock, audio, _) = try await harness()
@@ -177,6 +213,8 @@ import XCTest
         defaults.set(Data(#"{"sound":false,"spokenIntroduction":true,"haptics":true,"ambientVolume":0.2,"cueVolume":0.4,"hasReadSafety":true}"#.utf8), forKey: "flow.preferences.v1")
         let storage = SessionStore(defaults: defaults)
         XCTAssertFalse(storage.preferences.sound); XCTAssertTrue(storage.preferences.haptics)
+        XCTAssertFalse(storage.preferences.spokenCounting);
+        storage.preferences.spokenCounting = true
         XCTAssertTrue(storage.preferences.hasReadSafety); XCTAssertEqual(storage.preferences.minutes, 10)
         storage.preferences.practice = .silence; storage.preferences.minutes = 30; storage.preferences.guidance = .full
         XCTAssertEqual(SessionStore(defaults: defaults).preferences, storage.preferences)

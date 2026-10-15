@@ -7,6 +7,8 @@ import Observation
     var onRemotePause: (() -> Void)? { get set }
     var onRemoteResume: (() -> Void)? { get set }
     var onRemoteStop: (() -> Void)? { get set }
+    var timelinePosition: TimeInterval? { get }
+    func disableCounting()
     func prepare(definition: SessionDefinition, preferences: Preferences) async throws
     func play(from time: TimeInterval) throws
     func pause()
@@ -79,38 +81,39 @@ import Observation
     private func play(automaticallyRefresh: Bool) {
         do {
             try audio.play(from: engine.elapsed)
-            engine.beginRunning(); notice = nil; lastSequence = nil
+            engine.beginRunning(); notice = nil
             tick()
             if automaticallyRefresh { observeTimeline() }
         } catch { interrupt("audio could not start. check your output, then resume when ready.") }
     }
     func tick() {
         guard engine.state == .running else { return }
-        engine.refresh()
+        engine.refresh(playbackTime: audio.timelinePosition)
         if engine.state == .completed { saveCompletion(); return }
         guard let phase = engine.phase else { lastSequence = nil; return }
         guard phase.sequence != lastSequence else { return }
         lastSequence = phase.sequence
-        if preferences.haptics && phase.progress * 5 < 0.25 { onHaptic?() }
+        if preferences.haptics && phase.progress * BreathingRhythm.phaseDuration < 0.25 { onHaptic?() }
     }
     func pause() {
         guard engine.state == .running else { return }
         tick()
         guard !engine.isTerminal else { return }
-        engine.pause(); audio.pause(); cancelRefresh()
+        audio.pause(); engine.pause(playbackTime: audio.timelinePosition); cancelRefresh()
     }
     func interrupt(_ reason: String) {
         guard !engine.isTerminal, engine.state != .idle else { return }
-        if engine.isPaused { notice = reason } else { engine.pause(reason: reason) }
-        audio.pause(); cancelRefresh()
+        audio.pause()
+        if engine.isPaused { notice = reason } else { engine.pause(reason: reason, playbackTime: audio.timelinePosition) }
+        cancelRefresh()
     }
     // Screen locking does not interrupt the pre-rendered meditation audio timeline.
     func appBecameActive() { tick() }
-    func useNaturalBreathing() { engine.useNaturalBreathing(); lastSequence = nil }
+    func useNaturalBreathing() { audio.disableCounting(); engine.useNaturalBreathing(); lastSequence = nil }
     func setMuted(_ value: Bool) { muted = value; audio.setMuted(value) }
     func stop() {
         if engine.state == .running { tick() }
-        engine.stop(); preparation?.cancel(); cancelRefresh(); audio.stopAll()
+        engine.stop(playbackTime: audio.timelinePosition); preparation?.cancel(); cancelRefresh(); audio.stopAll()
     }
     func cancel() {
         stop()
@@ -128,7 +131,7 @@ import Observation
         cancelRefresh()
         refreshTask = Task { [weak self] in
             while !Task.isCancelled {
-                do { try await Task.sleep(for: .milliseconds(100)) } catch { return }
+                do { try await Task.sleep(for: .milliseconds(50)) } catch { return }
                 guard let self, self.engine.state == .running else { return }
                 self.tick()
             }

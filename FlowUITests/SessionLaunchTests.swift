@@ -53,7 +53,12 @@ final class SessionLaunchTests: XCTestCase {
         app.buttons["duration-2"].tap()
         app.swipeUp()
         app.buttons["breathing-picker"].tap()
-        app.buttons["gentle pace · 5 in / 5 out"].tap()
+        app.buttons["box breathing"].tap()
+        let counting = app.switches["spoken-counting"]
+        if !counting.isHittable { app.swipeUp() }
+        counting.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5)).tap()
+        capture("box-counting-enabled")
+        XCTAssertEqual(counting.value as? String, "1")
         app.buttons["setup-done"].tap()
         begin(acknowledge: true)
         waitForControlsToFade()

@@ -15,7 +15,7 @@ struct PlayerView: View {
     private var recentlyRevealed: Bool { engine.elapsed - revealedAt < 14 }
     private var controlsVisible: Bool { voiceOver || recentlyRevealed || engine.state != .running || engine.segment.stage == .returning }
     private var timerVisible: Bool { controlsVisible || engine.elapsed < 25 }
-    private var textVisible: Bool { controlsVisible || engine.elapsed < 40 || (motionReduced && engine.phase != nil) }
+    private var textVisible: Bool { controlsVisible || engine.elapsed < 40 || engine.phase != nil }
     private var visualOpacity: Double {
         guard engine.state == .running else { return 0.6 }
         if engine.definition.practice == .silence { return max(0, 1 - engine.elapsed / 18) }
@@ -48,16 +48,27 @@ struct PlayerView: View {
                     Text(engine.definition.title).font(.subheadline).foregroundStyle(FlowStyle.muted)
                         .opacity(textVisible ? 1 : 0).accessibilityHidden(!textVisible)
                         .animation(motionReduced ? nil : .easeInOut(duration: 2), value: textVisible)
-                    Text(cueTitle).font(.system(.largeTitle, design: .serif))
-                        .multilineTextAlignment(.center).accessibilityIdentifier("current-cue")
-                        .opacity(textVisible ? 1 : 0).accessibilityHidden(!textVisible)
-                        .animation(motionReduced ? nil : .easeInOut(duration: 2), value: textVisible)
+                    if engine.phase == nil || typeSize.isAccessibilitySize {
+                        Text(cueTitle).font(.system(.largeTitle, design: .serif))
+                            .multilineTextAlignment(.center).accessibilityIdentifier("current-cue")
+                            .opacity(textVisible ? 1 : 0).accessibilityHidden(!textVisible)
+                        if let count = engine.phase?.count {
+                            Text("\(count)").font(.largeTitle.monospacedDigit())
+                                .accessibilityIdentifier("breathing-count").accessibilityLabel("count \(count) of 4")
+                        }
+                    }
                     if engine.state == .preparing {
                         ProgressView().tint(FlowStyle.accent).padding(40)
                         Text("making a little space…").foregroundStyle(FlowStyle.muted)
                     } else {
                         if !typeSize.isAccessibilitySize {
-                            BreathingVisual(phase: engine.phase, running: engine.state == .running, reduceMotion: motionReduced)
+                            Group {
+                                if let phase = engine.phase {
+                                    BoxBreathingVisual(phase: phase, running: engine.state == .running, reduceMotion: motionReduced)
+                                } else {
+                                    BreathingVisual(phase: nil, running: engine.state == .running, reduceMotion: motionReduced)
+                                }
+                            }
                                 .frame(height: 260).opacity(visualOpacity)
                                 .blur(radius: engine.segment.stage == .expand && !motionReduced ? 4 : 0)
                         }
@@ -69,7 +80,7 @@ struct PlayerView: View {
                         if let caption, textVisible {
                             Text(caption).font(.body).lineSpacing(5).multilineTextAlignment(.center)
                                 .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("guidance-caption")
-                            if engine.definition.practice != .silence {
+                            if engine.definition.practice != .silence && engine.phase == nil {
                                 Text(Guidance.introductionTitle).font(.caption2).foregroundStyle(FlowStyle.muted)
                             }
                         }
@@ -120,12 +131,13 @@ struct PlayerView: View {
     private var caption: String? {
         if engine.isPaused { return "take all the time you need." }
         if engine.definition.practice == .silence { return "a bell will mark the end. rest here." }
+        if engine.phase != nil { return nil }
         return engine.definition.narration.last(where: { $0.time <= engine.elapsed && engine.elapsed < $0.time + 30 })?.text
     }
     private var cueTitle: String {
         if engine.isPaused { return "paused" }
         if engine.state == .preparing { return "settle in." }
-        if let phase = engine.phase { return phase.kind == .inhale ? "breathe in" : "breathe out" }
+        if let phase = engine.phase { return phase.kind.title }
         return engine.segment.stage.title
     }
     private func reveal() { revealedAt = engine.elapsed }

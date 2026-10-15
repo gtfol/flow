@@ -7,14 +7,15 @@ All experience content was created for flow. No recordings, scripts, artwork, or
 | `ambient.wav` | Original additive synthesis, 60 seconds, 24 kHz stereo PCM; quiet partials and endpoint fades. | `python3 scripts/synthesize_audio.py` |
 | `bell.wav` | Original additive bell with a soft attack and eight-second decay; no sampled instrument. | Same script |
 | Narration MP3s | Original flow scripts generated with **Brian – Deep, Resonant and Comforting**, **Eleven v4**, October 1, 2026 (downloads dated October 2 UTC). | Prompts described below; model output is nondeterministic. |
-| Interface and player artwork | Original SwiftUI concentric rings, radial gradients, and vector drawing. | Build the app |
+| `counting-cycle.wav` | Brian / Eleven v4, October 15, 2026; softer meditation direction, 16 isolated cues arranged on 1.25-second beats. Original MP3 retained in `docs/audio/counting-source.mp3`. | `python3 scripts/prepare_counting.py` |
+| Interface and player artwork | Original SwiftUI concentric rings, box-breathing path, radial gradients, and vector drawing. | Build the app |
 | App icon | Original concentric sage rings with an open center, no lettermark. | `swift scripts/make_icon.swift Flow/Resources/Assets.xcassets/AppIcon.appiconset` |
 | Typography and glyphs | Apple system fonts and SF Symbols; no third-party font files. | iOS |
 | Practice plans and text | Original implementation from the owner’s briefs; accepted first iteration uses three practices and six duration presets. | `SessionDefinition.swift` |
 
 ## Guidance · elevenlabs.io
 
-The owner requested Brian, the other voice from the earlier auditions, in place of Sarah. All nine bundled narration files use Brian. Playback is entirely offline, with no runtime voice generation. The voice is AI-generated; no human recording session or listening-quality certification is claimed.
+The owner requested Brian, the other voice from the earlier auditions, in place of Sarah. The eight bundled narration MP3s and the box-counting recording use Brian. The legacy `pace.mp3` remains in source history but is no longer bundled. Playback is entirely offline, with no runtime voice generation. The voice is AI-generated; no human recording session or listening-quality certification is claimed.
 
 MP3 originals are retained byte-for-byte, including embedded content credentials. Rendering decodes them into a temporary mixed recording; it does not overwrite the originals. The visible captions come from `Guidance.introduction` and `Guidance.clips`. Voice gain is 0.8; bell and ambient gains use the saved preferences. Digital headroom is measured, but speaker/headphone comfort still needs listening on the target device.
 
@@ -49,6 +50,16 @@ Follow the gentle cue if it feels comfortable... or stay with your own rhythm. [
 
 You can pause... or stop... whenever you need.
 ```
+
+### Box-counting recording · October 15, 2026
+
+The owner requested a calmer delivery after the first counting audition felt like a workout coach. The replacement uses Brian / Eleven v4, stability 0.5, similarity 0.75, Generation 1. Its exact prompt:
+
+```text
+[calm] [speaking very softly] inhale... [long pause] two... [long pause] three... [long pause] four... [long pause] [gently] hold... [long pause] two... [long pause] three... [long pause] four... [long pause] [soothing] exhale... [long pause] two... [long pause] three... [long pause] four... [long pause] [gently] hold... [long pause] two... [long pause] three... [long pause] four...
+```
+
+The original downloaded MP3 is preserved byte-for-byte. `scripts/prepare_counting.py` detects the 16 separated cues, adjusts only their silent gaps, and adds five-millisecond edit fades. It does not change pitch or speech speed. The final 24 kHz mono PCM cycle is exactly 20 seconds: four five-second phases, with phase cues on beat one and numbers two through four after them. The optional voice track uses a 0.65 playback gain. Exact source cuts, output onsets, and hashes are in `docs/audio/counting-timing.json`. The script rejects unexpected cue counts and speech longer than a beat; human listening remains necessary to judge delivery and confirm word articulation.
 
 ### License and attribution
 

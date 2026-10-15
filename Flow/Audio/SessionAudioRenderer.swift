@@ -67,6 +67,37 @@ enum SessionAudioRenderer {
         return output
     }
 
+    /// A separate finite voice track lets natural breathing silence counts immediately.
+    static func renderCounting(definition: SessionDefinition, assets: [String: URL]) throws -> URL? {
+        guard definition.spokenCounting, let window = definition.pacingWindow else { return nil }
+        guard let asset = assets["counting-cycle"] else { throw RenderError.missingAsset("counting-cycle") }
+        let cycle = try samples(asset)
+        guard cycle.count == Int((BreathingRhythm.cycleDuration * rate).rounded()) else { throw RenderError.invalidAudio }
+        let output = FileManager.default.temporaryDirectory.appendingPathComponent("flow-counting-\(UUID().uuidString).wav")
+        var succeeded = false
+        defer { if !succeeded { try? FileManager.default.removeItem(at: output) } }
+        let settings: [String: Any] = [AVFormatIDKey: kAudioFormatLinearPCM, AVSampleRateKey: rate,
+            AVNumberOfChannelsKey: 1, AVLinearPCMBitDepthKey: 16,
+            AVLinearPCMIsFloatKey: false, AVLinearPCMIsBigEndianKey: false]
+        let file = try AVAudioFile(forWriting: output, settings: settings)
+        guard let buffer = AVAudioPCMBuffer(pcmFormat: file.processingFormat, frameCapacity: 8192),
+              let channel = buffer.floatChannelData?[0] else { throw RenderError.invalidAudio }
+        let start = Int((window.lowerBound * rate).rounded())
+        let end = Int((window.upperBound * rate).rounded())
+        for base in stride(from: 0, to: end, by: 8192) {
+            try Task.checkCancellation()
+            let count = min(8192, end - base)
+            buffer.frameLength = AVAudioFrameCount(count)
+            for i in 0..<count {
+                let frame = base + i
+                channel[i] = frame < start ? 0 : cycle[(frame - start) % cycle.count] * 0.65
+            }
+            try file.write(from: buffer)
+        }
+        succeeded = true
+        return output
+    }
+
     static func samples(_ url: URL) throws -> [Float] {
         let file = try AVAudioFile(forReading: url)
         guard file.length > 0, file.length < 10_000_000,

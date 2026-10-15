@@ -1,0 +1,122 @@
+{
+  "voice": "Brian",
+  "model": "Eleven v4",
+  "source_sha256": "dc069adcdd772262fea38296f2e0b062b99bc621ef96db1bb0c307e80a94c07a",
+  "output_sha256": "7fd69993fc6934858f80d07b11e9608c77d764fab74600d997b765218047226f",
+  "beat_seconds": 1.25,
+  "cycle_seconds": 20.0,
+  "cues": [
+    {
+      "word": "inhale",
+      "source_start": 0,
+      "source_end": 1.092333,
+      "beat_start": 0.0,
+      "audio_start": 0.01
+    },
+    {
+      "word": "two",
+      "source_start": 2.261625,
+      "source_end": 2.832,
+      "beat_start": 1.25,
+      "audio_start": 1.26
+    },
+    {
+      "word": "three",
+      "source_start": 3.728792,
+      "source_end": 4.368417,
+      "beat_start": 2.5,
+      "audio_start": 2.51
+    },
+    {
+      "word": "four",
+      "source_start": 5.168666999999999,
+      "source_end": 5.868167,
+      "beat_start": 3.75,
+      "audio_start": 3.76
+    },
+    {
+      "word": "hold",
+      "source_start": 6.612417,
+      "source_end": 7.293583,
+      "beat_start": 5.0,
+      "audio_start": 5.01
+    },
+    {
+      "word": "two",
+      "source_start": 8.150625,
+      "source_end": 8.732542,
+      "beat_start": 6.25,
+      "audio_start": 6.26
+    },
+    {
+      "word": "three",
+      "source_start": 9.488,
+      "source_end": 10.109875,
+      "beat_start": 7.5,
+      "audio_start": 7.51
+    },
+    {
+      "word": "four",
+      "source_start": 10.857707999999999,
+      "source_end": 11.548792,
+      "beat_start": 8.75,
+      "audio_start": 8.76
+    },
+    {
+      "word": "exhale",
+      "source_start": 12.235375,
+      "source_end": 13.036583,
+      "beat_start": 10.0,
+      "audio_start": 10.01
+    },
+    {
+      "word": "two",
+      "source_start": 13.606083,
+      "source_end": 14.197583,
+      "beat_start": 11.25,
+      "audio_start": 11.26
+    },
+    {
+      "word": "three",
+      "source_start": 14.94625,
+      "source_end": 15.567582999999999,
+      "beat_start": 12.5,
+      "audio_start": 12.51
+    },
+    {
+      "word": "four",
+      "source_start": 16.297708,
+      "source_end": 16.982958,
+      "beat_start": 13.75,
+      "audio_start": 13.76
+    },
+    {
+      "word": "hold",
+      "source_start": 17.699167000000003,
+      "source_end": 18.341583,
+      "beat_start": 15.0,
+      "audio_start": 15.01
+    },
+    {
+      "word": "two",
+      "source_start": 19.189583000000002,
+      "source_end": 19.776667000000003,
+      "beat_start": 16.25,
+      "audio_start": 16.26
+    },
+    {
+      "word": "three",
+      "source_start": 20.527917000000002,
+      "source_end": 21.167583,
+      "beat_start": 17.5,
+      "audio_start": 17.51
+    },
+    {
+      "word": "four",
+      "source_start": 21.884583000000003,
+      "source_end": 22.674291666666665,
+      "beat_start": 18.75,
+      "audio_start": 18.76
+    }
+  ]
+}

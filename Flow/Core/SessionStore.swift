@@ -11,10 +11,11 @@ struct Preferences: Codable, Equatable {
     var minutes = 10
     var guidance: GuidanceLevel = .minimal
     var breathing: BreathingMode = .natural
+    var spokenCounting = false
 
     init() {}
     enum CodingKeys: String, CodingKey {
-        case sound, haptics, ambientVolume, cueVolume, hasReadSafety, practice, minutes, guidance, breathing
+        case sound, haptics, ambientVolume, cueVolume, hasReadSafety, practice, minutes, guidance, breathing, spokenCounting
     }
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -27,6 +28,7 @@ struct Preferences: Codable, Equatable {
         minutes = try c.decodeIfPresent(Int.self, forKey: .minutes) ?? 10
         guidance = (try? c.decode(GuidanceLevel.self, forKey: .guidance)) ?? .minimal
         breathing = (try? c.decode(BreathingMode.self, forKey: .breathing)) ?? .natural
+        spokenCounting = try c.decodeIfPresent(Bool.self, forKey: .spokenCounting) ?? false
     }
 
     func normalized() -> Preferences {

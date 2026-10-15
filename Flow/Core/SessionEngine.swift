@@ -17,6 +17,7 @@ struct PhasePosition: Equatable {
     let progress: Double
     let remaining: TimeInterval
     let sequence: Int
+    var count: Int? = nil
 }
 
 @MainActor @Observable final class SessionEngine {
@@ -38,37 +39,44 @@ struct PhasePosition: Equatable {
     var isPaused: Bool { state == .paused || state == .interrupted }
     var segment: PracticeSegment { definition.segment(at: elapsed) }
     var phase: PhasePosition? {
-        guard mode == .paced, segment.stage == .settle, !isTerminal else { return nil }
-        let active = max(0, elapsed - segment.start)
-        let sequence = Int(active / 5)
-        let offset = active.truncatingRemainder(dividingBy: 5)
-        return .init(kind: sequence.isMultiple(of: 2) ? .inhale : .exhale,
-                     progress: offset / 5, remaining: 5 - offset, sequence: sequence)
+        guard mode == .paced, !isTerminal, let window = definition.pacingWindow,
+              window.contains(elapsed) else { return nil }
+        return BreathingRhythm.position(at: elapsed - window.lowerBound)
     }
+
     func prepare() { guard state == .idle else { return }; state = .preparing }
     func beginRunning() {
         guard state == .preparing || isPaused else { return }
         anchor = clock.now; interruptionReason = nil; state = .running
     }
-    func refresh() {
+    func refresh(playbackTime: TimeInterval? = nil) {
         guard state == .running else { return }
-        sample()
+        if let playbackTime, playbackTime.isFinite {
+            elapsed = min(definition.duration, max(0, playbackTime))
+            accumulated = elapsed; anchor = clock.now
+        } else { sample() }
         if elapsed >= definition.duration { complete() }
     }
     func complete() {
         guard state == .running else { return }
         elapsed = definition.duration; accumulated = elapsed; anchor = nil; state = .completed
     }
-    func pause(reason: String? = nil) {
+    func pause(reason: String? = nil, playbackTime: TimeInterval? = nil) {
         guard state == .running || state == .preparing else { return }
-        if state == .running { sample() }
+        if state == .running {
+            if let playbackTime, playbackTime.isFinite { elapsed = min(definition.duration, max(0, playbackTime)) }
+            else { sample() }
+        }
         accumulated = elapsed; anchor = nil; interruptionReason = reason
         state = reason == nil ? .paused : .interrupted
     }
     func useNaturalBreathing() { mode = .natural }
-    func stop() {
+    func stop(playbackTime: TimeInterval? = nil) {
         guard !isTerminal else { return }
-        if state == .running { sample() }
+        if state == .running {
+            if let playbackTime, playbackTime.isFinite { elapsed = min(definition.duration, max(0, playbackTime)) }
+            else { sample() }
+        }
         accumulated = elapsed; anchor = nil; state = .stopped
     }
     private func sample() {

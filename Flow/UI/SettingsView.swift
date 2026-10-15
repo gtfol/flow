@@ -74,13 +74,14 @@ struct SourceNotesView: View {
             VStack(alignment: .leading, spacing: 24) {
                 Text("a few notes on flow.").font(.system(.largeTitle, design: .serif))
                 note("the experience", "Othership’s public app experience informed the atmosphere and focus on sound. flow’s interface, vector artwork, session names, guidance, and synthesized audio are original. no Othership recordings or subscription content are included.")
-                note("the breathing", "NHS guidance supports gentle, comfortable breathing without forcing and optional counting. flow’s 5-second in / 5-second out cue is a product choice, not an NHS protocol or a clinical recommendation. natural breathing is the default.")
+                note("the breathing", "NHS guidance supports gentle, comfortable breathing without forcing and optional counting. box breathing follows inhale / hold / exhale / hold. flow uses four rhythmic beats per side, with each spoken cue as beat one. its pace is a product choice, not a clinical recommendation. natural breathing is the default.")
                 note("the sound", "the ambient bed and soft bell were synthesized locally. original guidance uses Brian’s AI-generated voice from ElevenLabs. all recordings play offline.")
                 note(Guidance.introductionTitle, "original words, voiced with Brian from elevenlabs.io. shared for noncommercial use with attribution.")
-                note("the boundaries", "flow is for general wellness. it offers no diagnosis, treatment, breath tests, breath holds, or intense breathing routines. follow your comfort, and stop whenever you want.")
+                note("the boundaries", "flow is for general wellness. it offers no diagnosis, treatment, breath tests or intense breathing routines. paced holds are optional; skip them or return to natural breathing whenever you need. follow your comfort, and stop whenever you want.")
                 VStack(alignment: .leading, spacing: 12) {
                     Text("references · internet needed to open").font(.footnote).foregroundStyle(FlowStyle.muted)
                     Link("NHS · gentle breathing", destination: URL(string: "https://www.nhs.uk/mental-health/self-help/guides-tools-and-activities/breathing-exercises-for-stress/")!)
+                    Link("Cleveland Clinic · box breathing", destination: URL(string: "https://health.clevelandclinic.org/box-breathing-benefits")!)
                     Link("Cleveland Clinic · hyperventilation", destination: URL(string: "https://my.clevelandclinic.org/health/diseases/hyperventilation")!)
                     Link("Othership · public app reference", destination: URL(string: "https://www.othership.us/app")!)
                 }.font(.subheadline)

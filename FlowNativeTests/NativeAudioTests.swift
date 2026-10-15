@@ -5,8 +5,8 @@ import AVFoundation
 @MainActor final class NativeAudioTests: XCTestCase {
     private func assets() throws -> [String: URL] {
         var result: [String: URL] = [:]
-        for name in ["ambient", "bell", "introduction"] + Array(Guidance.clips.keys) {
-            result[name] = try XCTUnwrap(Bundle.main.url(forResource: name, withExtension: ["ambient", "bell"].contains(name) ? "wav" : "mp3"))
+        for name in ["ambient", "bell", "introduction", "counting-cycle"] + Array(Guidance.clips.keys) {
+            result[name] = try XCTUnwrap(Bundle.main.url(forResource: name, withExtension: ["ambient", "bell", "counting-cycle"].contains(name) ? "wav" : "mp3"))
         }
         return result
     }
@@ -79,6 +79,46 @@ import AVFoundation
         XCTAssertFalse(audio.isPlaying)
         XCTAssertEqual(audio.playbackDuration, 0)
         audio.stopAll()
+    }
+    func testCountingAssetAndFiniteWindow() throws {
+        let assets = try assets()
+        let cycle = try SessionAudioRenderer.samples(XCTUnwrap(assets["counting-cycle"]))
+        XCTAssertEqual(Double(cycle.count) / SessionAudioRenderer.rate, BreathingRhythm.cycleDuration, accuracy: 0.00001)
+        // Every beat contains a cue, and every cue ends before the next beat.
+        let beatFrames = Int(BreathingRhythm.beatDuration * SessionAudioRenderer.rate)
+        for beat in 0..<16 {
+            let start = beat * beatFrames
+            XCTAssertGreaterThan(cycle[start..<(start + beatFrames)].map(abs).max()!, 0.02)
+            XCTAssertLessThan(cycle[(start + beatFrames - 240)..<(start + beatFrames)].map(abs).max()!, 0.001)
+        }
+        let definition = try SessionDefinition(minutes: 2, breathing: .paced, spokenCounting: true)
+        let url = try XCTUnwrap(SessionAudioRenderer.renderCounting(definition: definition, assets: assets))
+        defer { try? FileManager.default.removeItem(at: url) }
+        let track = try SessionAudioRenderer.samples(url)
+        let window = try XCTUnwrap(definition.pacingWindow)
+        XCTAssertEqual(track.count, Int((window.upperBound * SessionAudioRenderer.rate).rounded()))
+        XCTAssertTrue(track[..<Int(window.lowerBound * SessionAudioRenderer.rate)].allSatisfy { $0 == 0 })
+        XCTAssertNil(try SessionAudioRenderer.renderCounting(definition: SessionDefinition(), assets: assets))
+    }
+    func testCountPlaybackSharesClockAndNaturalOverrideSurvivesReset() async throws {
+        let audio = AudioController()
+        defer { audio.stopAll() }
+        try await audio.prepare(definition: SessionDefinition(minutes: 2, breathing: .paced, spokenCounting: true), preferences: Preferences())
+        try audio.play(from: 35)
+        try await Task.sleep(for: .milliseconds(250))
+        XCTAssertTrue(audio.isCounting)
+        XCTAssertEqual(try XCTUnwrap(audio.countingTime), audio.playbackTime, accuracy: 0.03)
+        audio.pause()
+        let position = audio.playbackTime
+        try audio.play(from: position)
+        try await Task.sleep(for: .milliseconds(150))
+        XCTAssertEqual(try XCTUnwrap(audio.countingTime), audio.playbackTime, accuracy: 0.03)
+        audio.disableCounting(); XCTAssertFalse(audio.isCounting)
+        audio.pause()
+        NotificationCenter.default.post(name: AVAudioSession.mediaServicesWereResetNotification, object: nil)
+        try await Task.sleep(for: .milliseconds(50))
+        try audio.play(from: position)
+        XCTAssertTrue(audio.isPlaying); XCTAssertFalse(audio.isCounting)
     }
     func testNativePlaybackPauseResumeAndRepeatedCleanup() async throws {
         let audio = AudioController()

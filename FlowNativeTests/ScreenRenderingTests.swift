@@ -11,6 +11,8 @@ import SwiftUI
     var onRemoteStop: (() -> Void)?
     func prepare(definition: SessionDefinition, preferences: Preferences) async throws {}
     func play(from time: TimeInterval) throws {}
+    var timelinePosition: TimeInterval? { nil }
+    func disableCounting() {}
     func pause() {}
     func setMuted(_ muted: Bool) {}
     func stopAll() {}
@@ -48,6 +50,9 @@ import SwiftUI
                 ("safety", AnyView(SafetyView(acknowledge: {}))),
                 ("arrive", AnyView(PlayerView(coordinator: coordinator(.natural, time: 5), reduceMotionOverride: reduced))),
                 ("natural", AnyView(PlayerView(coordinator: coordinator(.natural, time: 35), reduceMotionOverride: reduced))),
+                ("box-inhale", AnyView(PlayerView(coordinator: coordinator(.paced, time: 37), reduceMotionOverride: reduced))),
+                ("box-hold-in", AnyView(PlayerView(coordinator: coordinator(.paced, time: 41), reduceMotionOverride: reduced))),
+                ("box-hold-out", AnyView(PlayerView(coordinator: coordinator(.paced, time: 52), reduceMotionOverride: reduced))),
                 ("paced", AnyView(PlayerView(coordinator: coordinator(.paced, time: 47), reduceMotionOverride: reduced))),
                 ("open", AnyView(PlayerView(coordinator: coordinator(.natural, time: 101), reduceMotionOverride: reduced))),
                 ("silence", AnyView(PlayerView(coordinator: coordinator(.natural, time: 25, practice: .silence), reduceMotionOverride: reduced))),

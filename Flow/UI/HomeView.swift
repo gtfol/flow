@@ -84,7 +84,7 @@ struct HomeView: View {
     }
     private func startPlayer() {
         let p = store.preferences.normalized()
-        guard let definition = try? SessionDefinition(practice: p.practice, minutes: p.minutes, guidance: p.guidance, breathing: p.breathing) else { return }
+        guard let definition = try? SessionDefinition(practice: p.practice, minutes: p.minutes, guidance: p.guidance, breathing: p.breathing, spokenCounting: p.spokenCounting) else { return }
         let engine = SessionEngine(definition: definition, clock: ContinuousTimeSource())
         let coordinator = SessionCoordinator(engine: engine, audio: AudioController(), store: store)
         coordinator.onHaptic = {

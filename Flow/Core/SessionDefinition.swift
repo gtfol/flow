@@ -24,7 +24,7 @@ enum GuidanceLevel: String, Codable, CaseIterable, Identifiable, Sendable {
 enum BreathingMode: String, Codable, CaseIterable, Identifiable, Sendable {
     case natural, paced
     var id: String { rawValue }
-    var title: String { self == .natural ? "natural" : "gentle pace · 5 in / 5 out" }
+    var title: String { self == .natural ? "natural" : "box breathing" }
 }
 
 enum PracticeStage: String, Sendable {
@@ -57,24 +57,36 @@ struct NarrationEvent: Equatable, Sendable {
 struct SessionDefinition: Identifiable, Equatable, Sendable {
     enum ValidationError: Error { case unsupportedDefinition }
     struct Phase {
-        enum Kind: String, Sendable { case inhale, exhale }
+        enum Kind: String, Sendable {
+            case inhale, holdIn, exhale, holdOut
+            var title: String {
+                switch self {
+                case .inhale: "inhale"
+                case .holdIn: "hold"
+                case .exhale: "exhale"
+                case .holdOut: "hold"
+                }
+            }
+        }
     }
     static let minuteOptions = [2, 5, 10, 15, 20, 30]
     let practice: Practice
     let duration: TimeInterval
     let guidance: GuidanceLevel
     let breathing: BreathingMode
+    let spokenCounting: Bool
     var id: String { practice.rawValue }
     var title: String { practice.title }
     var detail: String { practice.detail }
 
     init(practice: Practice = .openAwareness, minutes: Int = 10,
-         guidance: GuidanceLevel = .minimal, breathing: BreathingMode = .natural) throws {
+         guidance: GuidanceLevel = .minimal, breathing: BreathingMode = .natural, spokenCounting: Bool = false) throws {
         guard Self.minuteOptions.contains(minutes) else { throw ValidationError.unsupportedDefinition }
         self.practice = practice
         duration = Double(minutes * 60)
         self.guidance = practice == .silence ? .silent : guidance
         self.breathing = practice == .silence ? .natural : breathing
+        self.spokenCounting = practice != .silence && breathing == .paced && spokenCounting
     }
 
     var segments: [PracticeSegment] {
@@ -97,14 +109,24 @@ struct SessionDefinition: Identifiable, Equatable, Sendable {
         segments.first(where: { time < $0.end }) ?? segments.last!
     }
 
+    /// Finish a whole four-phase cycle before returning to natural breathing.
+    var pacingWindow: Range<TimeInterval>? {
+        guard breathing == .paced, let settle = segments.first(where: { $0.stage == .settle }) else { return nil }
+        let cycles = floor(settle.duration / BreathingRhythm.cycleDuration)
+        guard cycles >= 1 else { return nil }
+        return settle.start..<(settle.start + cycles * BreathingRhythm.cycleDuration)
+    }
+
     var narration: [NarrationEvent] {
         guard practice != .silence else { return [] }
         var events = [NarrationEvent(time: 3, clip: "introduction", text: Guidance.introduction)]
         guard guidance != .silent else { return events }
         for segment in segments where segment.stage != .arrive {
+            // Leave the paced window free of narration, including full-guidance reminders.
+            if segment.stage == .settle && breathing == .paced { continue }
             let clip: String
             switch segment.stage {
-            case .settle: clip = breathing == .paced ? "pace" : "settle"
+            case .settle: clip = "settle"
             case .expand: clip = "body"
             case .open: clip = "open"
             case .returning: clip = "return"
@@ -149,7 +171,6 @@ enum Guidance {
     static let introduction = "Find a comfortable place to sit, or lie down. Let your shoulders soften. Let your breathing stay easy. There's no need to make it deeper. For the next few minutes, simply notice your breath. Follow the gentle cue if it feels comfortable, or stay with your own rhythm. You can pause or stop whenever you need."
     static let clips = [
         "settle": "Let the breath find its own rhythm. Notice where you feel it most easily. There is no need to change it.",
-        "pace": "If it feels comfortable, follow the gentle cue. Five seconds in, and five seconds out. Keep the breath easy. You can return to your own rhythm at any time.",
         "body": "Let your breathing happen by itself. Feel the weight of the body. Let your attention include the whole body at once.",
         "sound": "Notice sound, alongside the breath. Let nearby sounds and distant sounds be here together.",
         "thoughts": "If a thought appears, you can notice it without following it. Gently include the body and the sounds around you again.",
@@ -158,5 +179,5 @@ enum Guidance {
         "return": "Feel the body again. Notice the room. Move your hands and feet gently. Open your eyes whenever you are ready."
     ]
     static let ending = "take a moment. move on when you’re ready."
-    static let safety = "Use this seated or lying down in a safe place, never while driving, in water, or operating equipment. Keep breathing comfortable; do not force it or hold your breath. Stop if you feel dizzy, tingly, breathless, or unwell. If you have a medical condition, are pregnant, or are unsure whether breathing exercises suit you, ask a healthcare professional. Chest pain, fainting, or severe breathing trouble needs urgent medical help, not another session."
+    static let safety = "Use this seated or lying down in a safe place, never while driving, in water, or operating equipment. Keep breathing comfortable; do not force a deeper breath or strain through a hold. Paced breathing includes optional holds after breathing in and out. Skip a hold or return to natural breathing whenever you need. Stop if you feel dizzy, tingly, breathless, or unwell. If you have a medical condition, are pregnant, or are unsure whether breathing exercises suit you, ask a healthcare professional. Chest pain, fainting, or severe breathing trouble needs urgent medical help, not another session."
 }

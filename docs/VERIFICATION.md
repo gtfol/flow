@@ -1,5 +1,20 @@
 # Verification
 
+## Box-breathing iteration · October 15, 2026
+
+Build **0.2.0 (5)** adds a clockwise square for inhale / hold / exhale / hold, four beats per side. The phase cue replaces count one. The softer Brian recording plays on 1.25-second beats, preserving original pitch and speech speed. Each phase lasts five seconds and a complete cycle lasts twenty seconds. The separate finite counting track shares the main recording's device clock; switching to natural breathing stops counts immediately.
+
+- **21 macOS core tests passed**, including all phase/count boundaries, complete-cycle endings, playback-clock authority, preference migration, and natural override through pause/resume.
+- **30 iPhone-hosted tests passed:** 21 core, eight native-audio checks, and one rendering test capturing 29 screens. Native checks verify the bundled voice and silent beat tails, finite counting window, track synchronization within 30 ms across pause/resume, and natural override surviving an audio-system reset.
+- **All four UI scenarios passed.** Three passed in the full run. The counting test initially tapped the switch's enclosing row instead of its thumb; after targeting the thumb, its isolated rerun passed with counting enabled and a real timed return to natural breathing. No production-code change was needed for this test correction.
+- Simulator Debug and unsigned device Release builds passed. The signed archive passed strict code-signature verification and contains the expected build number, app name, bundle identifier, background-audio mode, and 20-second counting recording.
+- Local results: `/private/tmp/flow-build5/FullTests.xcresult` and `/private/tmp/flow-build5/CountingUITests.xcresult`. The counting file, original source, timing manifest, and reproducible preparation script are checked in together.
+- TestFlight upload is being completed; do not infer processing or tester availability from archive success alone.
+
+The physical-device and listening boundaries below still apply. Automated timing checks do not establish that the voice subjectively meets another app's production standards.
+
+## Released build 4
+
 Current iteration: **0.2.0 (4)**, October 1, 2026. Xcode 26.6 (17F113), Swift 6.3.3, iOS deployment target 17.0. This file distinguishes completed checks from release work still pending.
 
 ## Completed locally
